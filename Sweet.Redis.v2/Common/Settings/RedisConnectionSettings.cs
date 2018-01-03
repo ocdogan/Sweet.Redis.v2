@@ -42,6 +42,17 @@ namespace Sweet.Redis.v2
 
         private uint? m_CRCHash;
 
+        private int m_BulkSendFactor;
+        private int m_ConnectionCount;
+        private int m_ConnectionTimeout;
+        private int m_ConnectionWaitTimeout;
+        private RedisEndPoint[] m_EndPoints;
+        private int m_HearBeatIntervalInSecs;
+        private int m_ReadBufferSize;
+        private int m_ReceiveTimeout;
+        private int m_SendTimeout;
+        private int m_WriteBufferSize;
+
         #endregion Field Members
 
         #region .Ctors
@@ -55,6 +66,7 @@ namespace Sweet.Redis.v2
             string masterName = null,
             string password = null,
             string clientName = null,
+            int connectionCount = RedisConstants.DefaultConnectionCount,
             int connectionTimeout = RedisConstants.DefaultConnectionTimeout,
             int receiveTimeout = RedisConstants.DefaultReceiveTimeout,
             int sendTimeout = RedisConstants.DefaultSendTimeout,
@@ -73,6 +85,7 @@ namespace Sweet.Redis.v2
                 masterName, 
                 password, 
                 clientName, 
+                connectionCount,
                 connectionTimeout, 
                 receiveTimeout,
                 sendTimeout, 
@@ -93,6 +106,7 @@ namespace Sweet.Redis.v2
             string masterName = null,
             string password = null,
             string clientName = null,
+            int connectionCount = RedisConstants.DefaultConnectionCount,
             int connectionTimeout = RedisConstants.DefaultConnectionTimeout,
             int receiveTimeout = RedisConstants.DefaultReceiveTimeout,
             int sendTimeout = RedisConstants.DefaultSendTimeout,
@@ -111,6 +125,7 @@ namespace Sweet.Redis.v2
                 masterName, 
                 password, 
                 clientName, 
+                connectionCount,
                 connectionTimeout, 
                 receiveTimeout,
                 sendTimeout, 
@@ -131,6 +146,7 @@ namespace Sweet.Redis.v2
             string masterName = null,
             string password = null,
             string clientName = null,
+            int connectionCount = RedisConstants.DefaultConnectionCount,
             int connectionTimeout = RedisConstants.DefaultConnectionTimeout,
             int receiveTimeout = RedisConstants.DefaultReceiveTimeout,
             int sendTimeout = RedisConstants.DefaultSendTimeout,
@@ -146,8 +162,7 @@ namespace Sweet.Redis.v2
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
         {
-            EndPoints = !endPoints.IsEmpty() ? endPoints :
-                new[] { new RedisEndPoint(RedisConstants.LocalHost, RedisConstants.DefaultPort) };
+            EndPoints = endPoints;
             UseSsl = useSsl;
             Password = password;
             ClientName = clientName;
@@ -155,44 +170,112 @@ namespace Sweet.Redis.v2
             ThrowOnError = throwOnError;
             SslCertificateSelection = sslCertificateSelection;
             SslCertificateValidation = sslCertificateValidation;
-            BulkSendFactor = (bulkSendFactor < 1 ? RedisConstants.DefaultBulkSendFactor : Math.Min(bulkSendFactor, RedisConstants.MaxBulkSendFactor));
-            ConnectionTimeout = Math.Max(RedisConstants.MinConnectionTimeout, Math.Min(RedisConstants.MaxConnectionTimeout, connectionTimeout));
-            ConnectionWaitTimeout = Math.Max(RedisConstants.MinWaitTimeout, Math.Min(RedisConstants.MaxWaitTimeout, connectionWaitTimeout));
-            ReceiveTimeout = Math.Max(RedisConstants.MinReceiveTimeout, Math.Min(RedisConstants.MaxReceiveTimeout, receiveTimeout));
-            SendTimeout = Math.Max(RedisConstants.MinSendTimeout, Math.Min(RedisConstants.MaxSendTimeout, sendTimeout));
-            ReadBufferSize = Math.Max(0, readBufferSize);
-            WriteBufferSize = Math.Max(0, writeBufferSize);
+            BulkSendFactor = bulkSendFactor;
+            ConnectionCount = connectionCount;
+            ConnectionTimeout = connectionTimeout;
+            ConnectionWaitTimeout = connectionWaitTimeout;
+            ReceiveTimeout = receiveTimeout;
+            SendTimeout = sendTimeout;
+            ReadBufferSize = readBufferSize;
+            WriteBufferSize = writeBufferSize;
             HeartBeatEnabled = heartBeatEnabled;
-            HearBeatIntervalInSecs = Math.Max(RedisConstants.MinHeartBeatIntervalSecs, Math.Min(RedisConstants.MaxHeartBeatIntervalSecs, hearBeatIntervalInSecs));
+            HearBeatIntervalInSecs = hearBeatIntervalInSecs;
+            UseBackgroundThread = useBackgroundThread;
         }
 
         #endregion .Ctors
 
         #region Properties
 
-        public int BulkSendFactor { get; private set; }
+        public int BulkSendFactor 
+        {
+            get { return m_BulkSendFactor; }
+            private set 
+            { 
+                m_BulkSendFactor = (value < 1 ? RedisConstants.DefaultBulkSendFactor : Math.Min(value, RedisConstants.MaxBulkSendFactor)); 
+            }
+        }
 
         public string ClientName { get; private set; }
 
-        public int ConnectionTimeout { get; private set; }
+        public int ConnectionCount
+        {
+            get { return m_ConnectionCount; }
+            private set
+            {
+                m_ConnectionCount = Math.Max(Math.Min(value, RedisConstants.MaxConnectionCount), RedisConstants.MinConnectionCount);
+            }
+        }
 
-        public int ConnectionWaitTimeout { get; private set; }
+        public int ConnectionTimeout
+        {
+            get { return m_ConnectionTimeout; }
+            private set
+            {
+                m_ConnectionTimeout = Math.Max(RedisConstants.MinConnectionTimeout, Math.Min(RedisConstants.MaxConnectionTimeout, value));
+            }
+        }
 
-        public RedisEndPoint[] EndPoints { get; private set; }
+        public int ConnectionWaitTimeout
+        {
+            get { return m_ConnectionWaitTimeout; }
+            private set
+            {
+                m_ConnectionWaitTimeout = Math.Max(RedisConstants.MinWaitTimeout, Math.Min(RedisConstants.MaxWaitTimeout, value));
+            }
+        }
+
+        public RedisEndPoint[] EndPoints
+        {
+            get { return m_EndPoints; }
+            private set
+            {
+                m_EndPoints = !value.IsEmpty() ? value :
+                    new[] { new RedisEndPoint(RedisConstants.LocalHost, RedisConstants.DefaultPort) };
+            }
+        }
 
         public bool HeartBeatEnabled { get; private set; }
 
-        public int HearBeatIntervalInSecs { get; private set; }
+        public int HearBeatIntervalInSecs
+        {
+            get { return m_HearBeatIntervalInSecs; }
+            private set
+            {
+                m_HearBeatIntervalInSecs = Math.Max(RedisConstants.MinHeartBeatIntervalSecs, Math.Min(RedisConstants.MaxHeartBeatIntervalSecs, value));
+            }
+        }
 
         public string MasterName { get; private set; }
 
         public string Password { get; private set; }
 
-        public int ReadBufferSize { get; private set; }
+        public int ReadBufferSize
+        {
+            get { return m_ReadBufferSize; }
+            private set
+            {
+                m_ReadBufferSize = Math.Max(0, value);
+            }
+        }
 
-        public int ReceiveTimeout { get; private set; }
+        public int ReceiveTimeout
+        {
+            get { return m_ReceiveTimeout; }
+            private set
+            {
+                m_ReceiveTimeout = Math.Max(RedisConstants.MinReceiveTimeout, Math.Min(RedisConstants.MaxReceiveTimeout, value));
+            }
+        }
 
-        public int SendTimeout { get; private set; }
+        public int SendTimeout
+        {
+            get { return m_SendTimeout; }
+            private set
+            {
+                m_SendTimeout = Math.Max(RedisConstants.MinSendTimeout, Math.Min(RedisConstants.MaxSendTimeout, value));
+            }
+        }
 
         public LocalCertificateSelectionCallback SslCertificateSelection { get; private set; }
 
@@ -200,7 +283,14 @@ namespace Sweet.Redis.v2
 
         public bool ThrowOnError { get; private set; }
 
-        public int WriteBufferSize { get; private set; }
+        public int WriteBufferSize
+        {
+            get { return m_WriteBufferSize; }
+            private set
+            {
+                m_WriteBufferSize = Math.Max(0, value);
+            }
+        }
 
         public bool UseBackgroundThread { get; private set; }
 
@@ -235,6 +325,7 @@ namespace Sweet.Redis.v2
                             masterName: MasterName,
                             password: Password,
                             clientName: ClientName,
+                            connectionCount: ConnectionCount,
                             connectionTimeout: ConnectionTimeout,
                             receiveTimeout: ReceiveTimeout,
                             sendTimeout: SendTimeout,
@@ -304,6 +395,13 @@ namespace Sweet.Redis.v2
             {
                 sBuilder.Append("clientName=");
                 sBuilder.Append(ClientName);
+                sBuilder.Append(';');
+            }
+
+            if (ConnectionCount != RedisConstants.DefaultConnectionCount)
+            {
+                sBuilder.Append("connectionCount=");
+                sBuilder.Append(ConnectionCount);
                 sBuilder.Append(';');
             }
 
@@ -490,6 +588,9 @@ namespace Sweet.Redis.v2
                     case "clientname":
                         ClientName = kv.Value as string;
                         break;
+                    case "connectioncount":
+                        ConnectionCount = (int)kv.Value;
+                        break;
                     case "connectiontimeout":
                         ConnectionTimeout = (int)kv.Value;
                         break;
@@ -539,6 +640,7 @@ namespace Sweet.Redis.v2
                 { "mastername", null },
                 { "password", null },
                 { "clientname", null },
+                { "connectioncount", RedisConstants.DefaultConnectionCount },
                 { "connectiontimeout", RedisConstants.DefaultConnectionTimeout },
                 { "receivetimeout", RedisConstants.DefaultReceiveTimeout },
                 { "sendtimeout", RedisConstants.DefaultSendTimeout },
@@ -567,6 +669,7 @@ namespace Sweet.Redis.v2
                 case "clientname":
                     settings[key] = value;
                     break;
+                case "connectioncount":
                 case "connectiontimeout":
                 case "receivetimeout":
                 case "sendtimeout":

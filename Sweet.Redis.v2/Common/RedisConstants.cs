@@ -233,8 +233,8 @@ namespace Sweet.Redis.v2
         public const int MaxConnectionTimeout = 60000;
 
         public const int MinConnectionCount = 1;
-        public const int MaxConnectionCount = 1000;
-        public const int DefaultMaxConnectionCount = 5;
+        public const int MaxConnectionCount = 8;
+        public const int DefaultConnectionCount = 1;
 
         public const int DefaultWaitTimeout = 5000;
         public const int MinWaitTimeout = 1000;

@@ -22,7 +22,8 @@ namespace Sweet.Redis.v2
 
         #endregion TestResult
 
-        private const int RedisPort = 6380;
+        private const int RedisPort = 6379; // 6380;
+        private const string RedisHost = "172.28.10.234"; // "127.0.0.1"; 
 
         static void Main(string[] args)
         {
@@ -33,7 +34,7 @@ namespace Sweet.Redis.v2
                 // UnitTests();
 
                 // PerformancePingTests();
-                PerformanceGetTinyTests();
+                // PerformanceGetTinyTests();
                 // PerformancePipeTests();
 
                 // MonitorTest1();
@@ -51,7 +52,7 @@ namespace Sweet.Redis.v2
                 // MultiThreadingGetTest2();
                 // MultiThreadingGetTest3();
                 // MultiThreadingGetTest4();
-                // MultiThreadingGetTest5();
+                MultiThreadingGetTest5();
                 // MultiThreadingGetTest6();
             }
             while (Console.ReadKey(true).Key != ConsoleKey.Escape);
@@ -123,7 +124,7 @@ namespace Sweet.Redis.v2
         {
             threadCount = Math.Max(1, threadCount);
 
-            using (var manager = new RedisAsyncManager(new RedisConnectionSettings("127.0.0.1", RedisPort, bulkSendFactor: 10000)))
+            using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort, bulkSendFactor: 10000, connectionCount: 2)))
             {
                 var loopIndex = 1;
                 List<Thread> thList = null;
@@ -337,7 +338,7 @@ namespace Sweet.Redis.v2
         {
             threadCount = Math.Max(1, threadCount);
 
-            using (var manager = new RedisAsyncManager(new RedisConnectionSettings("127.0.0.1", RedisPort, bulkSendFactor: 10000)))
+            using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort, bulkSendFactor: 10000)))
             {
                 var loopIndex = 1;
                 List<Thread> thList = null;
@@ -506,7 +507,7 @@ namespace Sweet.Redis.v2
                 Console.Clear();
 
                 var count = 0;
-                using (var manager = new RedisAsyncManager(new RedisConnectionSettings("127.0.0.1", RedisPort, bulkSendFactor: 10000)))
+                using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort, bulkSendFactor: 10000)))
                 {
                     manager.MonitorChannel.Subscribe((m) =>
                     {
@@ -541,7 +542,7 @@ namespace Sweet.Redis.v2
             {
                 Console.Clear();
 
-                using (var manager = new RedisAsyncManager(new RedisConnectionSettings("127.0.0.1", RedisPort, receiveTimeout: 90000)))
+                using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort, receiveTimeout: 90000)))
                 {
                     manager.MonitorChannel.Subscribe((m) =>
                     {
@@ -597,7 +598,7 @@ namespace Sweet.Redis.v2
                 Console.Clear();
 
                 var count = 0;
-                using (var manager = new RedisAsyncManager(new RedisConnectionSettings("127.0.0.1", RedisPort, bulkSendFactor: 10000)))
+                using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort, bulkSendFactor: 10000)))
                 {
                     manager.PubSubChannel.Subscribe((m) =>
                     {
@@ -632,7 +633,7 @@ namespace Sweet.Redis.v2
             {
                 Console.Clear();
 
-                using (var manager = new RedisAsyncManager(new RedisConnectionSettings("127.0.0.1", RedisPort, bulkSendFactor: 10000)))
+                using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort, bulkSendFactor: 10000)))
                 {
                     var channel = manager.PubSubChannel;
 
@@ -706,7 +707,7 @@ namespace Sweet.Redis.v2
         {
             var results = new List<TestResult>();
 
-            using (var manager = new RedisAsyncManager(new RedisConnectionSettings("127.0.0.1", RedisPort, bulkSendFactor: 10000)))
+            using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort, bulkSendFactor: 10000)))
             {
                 do
                 {
@@ -773,7 +774,7 @@ namespace Sweet.Redis.v2
         {
             var results = new List<TestResult>();
 
-            using (var manager = new RedisAsyncManager(new RedisConnectionSettings("127.0.0.1", RedisPort)))
+            using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort)))
             {
                 do
                 {
@@ -839,7 +840,7 @@ namespace Sweet.Redis.v2
         {
             var results = new List<TestResult>();
 
-            using (var manager = new RedisAsyncManager(new RedisConnectionSettings("127.0.0.1", RedisPort)))
+            using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort)))
             {
                 do
                 {

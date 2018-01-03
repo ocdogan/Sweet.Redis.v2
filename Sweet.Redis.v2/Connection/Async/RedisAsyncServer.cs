@@ -27,13 +27,15 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisAsyncServer : RedisDisposable, IRedisServer
+    public class RedisAsyncServer : RedisDisposable, IRedisServer
     {
         #region Field Members
 
         private RedisConnectionSettings m_Settings;
 
-        private RedisAsyncClient m_Client;
+        private int m_ClientIndex;
+        private int m_ClientCount;
+        private RedisAsyncClient[] m_Clients;
         private readonly object m_ClientLock = new object();
 
         private RedisAsyncClient m_TransactionalClient;
@@ -55,6 +57,8 @@ namespace Sweet.Redis.v2
                 throw new RedisFatalException(new ArgumentNullException("settings"), RedisErrorCode.MissingParameter);
 
             m_Settings = settings;
+            m_ClientCount = settings.ConnectionCount;
+            m_Clients = new RedisAsyncClient[m_ClientCount];
         }
 
         #endregion .Ctors
@@ -72,7 +76,20 @@ namespace Sweet.Redis.v2
                 pubSubChannel.Dispose();
 
             base.OnDispose(disposing);
-            using (var client = Interlocked.Exchange(ref m_Client, null)) { }
+
+            var clients = Interlocked.Exchange(ref m_Clients, null);
+            if (clients != null)
+            {
+                foreach (var client in clients)
+                {
+                    try
+                    {
+                        client.Dispose();
+                    }
+                    catch (Exception)
+                    { }
+                }
+            }
         }
 
         #endregion Destructors
@@ -130,17 +147,20 @@ namespace Sweet.Redis.v2
 
         private RedisAsyncClient GetClient()
         {
-            var client = m_Client;
-            if (client == null)
+            lock (m_ClientLock)
             {
-                lock (m_ClientLock)
+                var index = Interlocked.Add(ref m_ClientIndex, 1);
+                if (index >= m_ClientCount)
                 {
-                    client = m_Client;
-                    if (client == null)
-                        client = (m_Client = new RedisAsyncClient(m_Settings));
+                    index = 0;
+                    Interlocked.Exchange(ref m_ClientIndex, 0);
                 }
+
+                var client = m_Clients[index];
+                if (client == null)
+                    client = (m_Clients[index] = new RedisAsyncClient(m_Settings));
+                return client;
             }
-            return client;
         }
 
         public IRedisAdmin GetAdmin()
