@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sweet.Redis.v2.Console", "Sweet.Redis.v2.Console\Sweet.Redis.v2.Console.csproj", "{9FF118B7-8DEA-4F82-B1CC-F8F697F85660}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sweet.Redis.v2", "Sweet.Redis.v2\Sweet.Redis.v2.csproj", "{2DB7DEA5-77AA-494F-99EC-E662F5679A5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9FF118B7-8DEA-4F82-B1CC-F8F697F85660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FF118B7-8DEA-4F82-B1CC-F8F697F85660}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FF118B7-8DEA-4F82-B1CC-F8F697F85660}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FF118B7-8DEA-4F82-B1CC-F8F697F85660}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DB7DEA5-77AA-494F-99EC-E662F5679A5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DB7DEA5-77AA-494F-99EC-E662F5679A5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DB7DEA5-77AA-494F-99EC-E662F5679A5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DB7DEA5-77AA-494F-99EC-E662F5679A5B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
