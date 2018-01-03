@@ -4,9 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 
-using Sweet.Redis.v2;
-
-namespace Sweet.Redis.v2.Console
+namespace Sweet.Redis.v2
 {
     class Program
     {
