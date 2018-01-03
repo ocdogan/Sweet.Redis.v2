@@ -27,7 +27,7 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    public class RedisAsyncManager : RedisDisposable
+    public class RedisManager : RedisDisposable
     {
         #region Field Members
 
@@ -49,7 +49,7 @@ namespace Sweet.Redis.v2
 
         #region .Ctors
 
-        public RedisAsyncManager(RedisConnectionSettings settings)
+        public RedisManager(RedisConnectionSettings settings)
         {
             if (settings == null)
                 throw new RedisFatalException(new ArgumentNullException("settings"), RedisErrorCode.MissingParameter);

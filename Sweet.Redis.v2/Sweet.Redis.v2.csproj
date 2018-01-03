@@ -108,7 +108,7 @@
     <Compile Include="Connection\Db\RedisTransaction.cs" />
     <Compile Include="Connection\Async\RedisAsyncCommandExecuter.cs" />
     <Compile Include="Connection\Db\RedisDb.cs" />
-    <Compile Include="Connection\Async\RedisAsyncManager.cs" />
+    <Compile Include="Connection\Manager\RedisManager.cs" />
     <Compile Include="Connection\Async\RedisAsyncQueueT.cs" />
     <Compile Include="Connection\Async\RedisAsyncSocket.cs">
       <SubType>Code</SubType>
