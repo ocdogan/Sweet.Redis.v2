@@ -120,7 +120,7 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public RedisEndPoint EndPoint
+        public virtual RedisEndPoint EndPoint
         {
             get
             {

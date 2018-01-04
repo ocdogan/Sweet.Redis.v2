@@ -22,14 +22,34 @@
 //      THE SOFTWARE.
 #endregion License
 
+using System;
+
 namespace Sweet.Redis.v2
 {
-    public enum RedisRole : int
+    internal class RedisManagedServerGroup : RedisManagedNodesGroup
     {
-        Undefined = 0,
-        Any = 1,
-        Master = 2,
-        Slave = 3,
-        Sentinel = 4
+        #region .Ctors
+
+        public RedisManagedServerGroup(RedisManagerSettings settings, RedisRole role,
+                   RedisManagedServerNode[] nodes, Action<object, RedisCardioPulseStatus> onPulseStateChange)
+            : base(settings, role, nodes, onPulseStateChange)
+        {
+            if (!(role == RedisRole.Slave || role == RedisRole.Master))
+                throw new RedisException("Role must be master or slave");
+        }
+
+        #endregion .Ctors
+
+        #region Methods
+
+        public RedisManagedServer Next()
+        {
+            var node = NextNode();
+            if (node.IsAlive())
+                return (RedisManagedServer)node.Seed;
+            return null;
+        }
+
+        #endregion Methods
     }
 }

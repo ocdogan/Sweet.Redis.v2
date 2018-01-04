@@ -27,7 +27,7 @@ namespace Sweet.Redis.v2
     public interface IRedisHeartBeatProbe
     {
         bool Pulsing { get; }
-        long PulseFailCount { get; }
+        int PulseFailCount { get; }
 
         RedisHeartBeatPulseResult Pulse();
         void ResetPulseFailCounter();

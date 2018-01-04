@@ -27,7 +27,7 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    public class RedisAsyncServer : RedisDisposable, IRedisServer
+    public class RedisAsyncServer : RedisDisposable, IRedisServer, IRedisPingable
     {
         #region Field Members
 
@@ -47,6 +47,8 @@ namespace Sweet.Redis.v2
         private RedisPubSubChannel m_PubSubChannel;
         private readonly object m_PubSubChannelLock = new object();
 
+        private RedisHeartBeatProbe m_HeartBeatProbe;
+
         #endregion Field Members
 
         #region .Ctors
@@ -59,6 +61,14 @@ namespace Sweet.Redis.v2
             m_Settings = settings;
             m_ClientCount = settings.ConnectionCount;
             m_Clients = new RedisAsyncClient[m_ClientCount];
+
+            if (settings.HeartBeatEnabled)
+            {
+                m_HeartBeatProbe = new RedisHeartBeatProbe(settings, this, null);
+                m_HeartBeatProbe.SetOnPulseStateChange(OnPulseStateChange);
+
+                m_HeartBeatProbe.AttachToCardio();
+            }
         }
 
         #endregion .Ctors
@@ -67,6 +77,8 @@ namespace Sweet.Redis.v2
 
         protected override void OnDispose(bool disposing)
         {
+            using (var probe = Interlocked.Exchange(ref m_HeartBeatProbe, null)) { }
+
             var monitorChannel = Interlocked.Exchange(ref m_MonitorChannel, null);
             if (monitorChannel != null)
                 monitorChannel.Dispose();
@@ -95,6 +107,12 @@ namespace Sweet.Redis.v2
         #endregion Destructors
 
         #region Properties
+
+        public virtual bool IsDown
+        {
+            get { return !Disposed; }
+            protected internal set { }
+        }
 
         public IRedisMonitorChannel MonitorChannel
         {
@@ -144,6 +162,40 @@ namespace Sweet.Redis.v2
         #endregion Properties
 
         #region Methods
+
+        protected virtual void ApplyRole(RedisRole role)
+        { }
+
+        protected virtual void OnPulseStateChange(object sender, RedisCardioPulseStatus status)
+        { }
+
+        bool IRedisPingable.Ping()
+        {
+            if (!Disposed)
+            {
+                var clients = m_Clients;
+                if (clients != null)
+                {
+                    var result = false;
+                    foreach (var client in clients)
+                    {
+                        if (client != null)
+                        {
+                            try
+                            {
+                                if (client.Ping())
+                                    result = true;
+                            }
+                            catch (Exception)
+                            { }
+                        }
+                    }
+
+                    return result;
+                }
+            }
+            return false;
+        }
 
         private RedisAsyncClient GetClient()
         {

@@ -26,7 +26,7 @@ using System;
 
 namespace Sweet.Redis.v2
 {
-    public struct RedisNodeInfo : IEquatable<RedisNodeInfo>
+    public class RedisNodeInfo : IEquatable<RedisNodeInfo>
     {
         #region Static Members
 
@@ -37,7 +37,6 @@ namespace Sweet.Redis.v2
         #region .Ctors
 
         public RedisNodeInfo(RedisEndPoint endPoint, RedisRole role, string name = null)
-            : this()
         {
             Role = role;
             Name = name ?? String.Empty;
@@ -130,6 +129,5 @@ namespace Sweet.Redis.v2
         }
 
         #endregion Operator Overloads
-
     }
 }

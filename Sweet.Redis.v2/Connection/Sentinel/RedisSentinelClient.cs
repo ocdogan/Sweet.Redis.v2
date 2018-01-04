@@ -59,7 +59,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public override RedisRole Role
+        public override RedisRole ExpectedRole
         {
             get { return RedisRole.Sentinel; }
         }

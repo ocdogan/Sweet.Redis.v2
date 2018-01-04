@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 
 namespace Sweet.Redis.v2
 {
-    public class RedisAsyncClient : RedisDisposable, IRedisClient
+    public class RedisAsyncClient : RedisDisposable, IRedisClient, IRedisPingable
     {
         #region Constants
 
@@ -62,8 +62,8 @@ namespace Sweet.Redis.v2
         private RedisAsyncSocketBase m_Socket;
         private RedisConnectionSettings m_Settings;
 
+        private long m_SendStatus;
         private bool m_UseBackgroundThread;
-        private long m_SendStatus = RedisAsyncClientStatus.Idle;
 
         private bool m_Constructed;
         private long m_ThreadRunning;
@@ -71,8 +71,7 @@ namespace Sweet.Redis.v2
         private bool m_ThrowOnError = true;
         private int m_ReceiveTimeout = RedisConstants.DefaultReceiveTimeout;
 
-        private RedisRole m_ServerRole = RedisRole.Undefined;
-        private RedisRole m_ExpectedRole = RedisRole.Undefined;
+        private RedisRole m_ServerRole;
 
         private long m_Id = RedisIDGenerator<RedisAsyncClient>.NextId();
 
@@ -155,9 +154,9 @@ namespace Sweet.Redis.v2
             get { return -1; }
         }
 
-        public RedisRole ExpectedRole
+        public virtual RedisRole ExpectedRole
         {
-            get { return m_ExpectedRole; }
+            get { return RedisRole.Undefined; }
         }
 
         public long Id
@@ -460,7 +459,7 @@ namespace Sweet.Redis.v2
             SetClientName(settings.ClientName);
 
             if (!NeedsToDiscoverRole())
-                m_ServerRole = m_ExpectedRole;
+                m_ServerRole = ExpectedRole;
             else
             {
                 var role = (m_ServerRole = DiscoverRole());
@@ -941,8 +940,9 @@ namespace Sweet.Redis.v2
 
         protected virtual bool NeedsToDiscoverRole()
         {
-            return !(m_ExpectedRole == RedisRole.Any ||
-                     m_ExpectedRole == RedisRole.Undefined);
+            var expectedRole = ExpectedRole;
+            return !(expectedRole == RedisRole.Any ||
+                     expectedRole == RedisRole.Undefined);
         }
 
         protected virtual void ValidateRole(RedisRole commandRole)

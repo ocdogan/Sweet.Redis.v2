@@ -68,10 +68,21 @@
     <Compile Include="Common\RedisSynchronizedQueue.cs" />
     <Compile Include="Connection\Async\RedisAsyncSocketBase.cs" />
     <Compile Include="Connection\Async\RedisAsyncContinuousSocket.cs" />
+    <Compile Include="Connection\Cardio\RedisHeartBeatProbe.cs" />
+    <Compile Include="Connection\Manager\RedisManagedMSGroup.cs" />
+    <Compile Include="Connection\Manager\RedisManagedNode.cs" />
+    <Compile Include="Connection\Manager\RedisManagedNodesGroup.cs" />
+    <Compile Include="Connection\Manager\RedisManagedSentinelGroup.cs" />
+    <Compile Include="Connection\Manager\RedisManagedSentinelListener.cs" />
+    <Compile Include="Connection\Manager\RedisManagedSentinelNode.cs" />
+    <Compile Include="Connection\Manager\RedisManagedServer.cs" />
+    <Compile Include="Connection\Manager\RedisManagedServerGroup.cs" />
+    <Compile Include="Connection\Manager\RedisManagedServerNode.cs" />
     <Compile Include="Connection\Monitor\RedisMonitorChannel.cs" />
     <Compile Include="Connection\Monitor\RedisMonitorSocket.cs" />
     <Compile Include="Connection\PubSub\RedisPubSubChannel.cs" />
     <Compile Include="Connection\PubSub\RedisPubSubSocket.cs" />
+    <Compile Include="Connection\Settings\RedisManagerSettings.cs" />
     <Compile Include="Connection\Settings\RedisSentinelSettings.cs" />
     <Compile Include="Interfaces\IRedisBatchCommand.cs" />
     <Compile Include="Common\Command\RedisBatchCommand.cs" />
@@ -98,8 +109,6 @@
     <Compile Include="Common\PubSub\RedisCallbackHub.cs" />
     <Compile Include="Common\PubSub\RedisPubSubMessage.cs" />
     <Compile Include="Common\PubSub\RedisPubSubMessageType.cs" />
-    <Compile Include="Common\ReaderWriter\RedisSocketWriter.cs" />
-    <Compile Include="Common\ReaderWriter\RedisStreamWriter.cs" />
     <Compile Include="Common\RedisBatchState.cs" />
     <Compile Include="Common\RedisConnectionState.cs" />
     <Compile Include="Common\RedisNodeInfo.cs" />
@@ -165,6 +174,7 @@
     <Compile Include="Interfaces\IRedisNamedObject.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Interfaces\IRedisPingable.cs" />
     <Compile Include="Interfaces\IRedisPipeline.cs" />
     <Compile Include="Interfaces\IRedisPubSubChannel.cs">
       <SubType>Code</SubType>
@@ -183,9 +193,6 @@
     <Compile Include="Interfaces\IRedisSortedSetsCommands.cs" />
     <Compile Include="Interfaces\IRedisStringsCommands.cs" />
     <Compile Include="Interfaces\IRedisTransaction.cs" />
-    <Compile Include="Interfaces\IRedisWriter.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Common\RedisAggregate.cs" />
     <Compile Include="Common\RedisAsyncEx.cs" />
     <Compile Include="Common\RedisBufferContext.cs" />
@@ -259,7 +266,6 @@
     <Compile Include="Common\ServerInfo\RedisServerSlaveInfo.cs" />
     <Compile Include="Common\Settings\RedisConnectionSettings.cs" />
     <Compile Include="Common\Sockets\RedisNativeSocket.cs" />
-    <Compile Include="Common\Sockets\RedisSocket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Connection\Async\RedisAsyncClient.cs" />
     <Compile Include="Connection\Async\RedisAsyncClientStatus.cs" />
@@ -277,6 +283,9 @@
     <Folder Include="Connection\CommandExecuter\" />
     <Folder Include="Connection\Continuous\" />
     <Folder Include="Connection\Pooling\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="License.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

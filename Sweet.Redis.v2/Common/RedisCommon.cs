@@ -2084,17 +2084,6 @@ namespace Sweet.Redis.v2
             return false;
         }
 
-        internal static bool IsConnected(this RedisSocket socket, int poll = -1)
-        {
-            if (socket != null && socket.Connected)
-            {
-                if (poll > -1)
-                    return !(socket.Poll(poll, SelectMode.SelectRead) && (socket.Available == 0));
-                return true;
-            }
-            return false;
-        }
-
         internal static void DisposeSocket(this Socket socket)
         {
             if (socket != null)
@@ -2132,46 +2121,7 @@ namespace Sweet.Redis.v2
                 catch (Exception)
                 { }
             }
-        }
-
-        internal static void DisposeSocket(this RedisSocket socket)
-        {
-            if (socket != null)
-            {
-                Action<object> action = (state) =>
-                {
-                    var sck = state as RedisSocket;
-                    if (sck != null)
-                    {
-                        try
-                        {
-                            sck.Shutdown(SocketShutdown.Both);
-                            if (sck.IsConnected(10))
-                                sck.Close();
-                        }
-                        catch (Exception)
-                        { }
-                        try
-                        {
-                            sck.Dispose();
-                        }
-                        catch (Exception)
-                        { }
-                    }
-                };
-
-                try
-                {
-                    var eventQ = RedisEventQueue.Default;
-                    if (!eventQ.IsAlive())
-                        action(socket);
-                    else
-                        eventQ.Enqueu(action, socket);
-                }
-                catch (Exception)
-                { }
-            }
-        }
+        }       
 
         #endregion Socket
 

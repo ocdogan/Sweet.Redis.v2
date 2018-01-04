@@ -22,31 +22,10 @@
 //      THE SOFTWARE.
 #endregion License
 
-using System;
-
 namespace Sweet.Redis.v2
 {
-    public interface IRedisWriter
+    public interface IRedisPingable
     {
-        bool UnderlyingDisposed { get; }
-
-        void Flush();
-
-        int Write(char val);
-        int Write(short val);
-        int Write(int val);
-        int Write(long val);
-        int Write(ushort val);
-        int Write(uint val);
-        int Write(ulong val);
-        int Write(decimal val);
-        int Write(double val);
-        int Write(float val);
-        int Write(DateTime val);
-        int Write(TimeSpan val);
-        int Write(byte val);
-        int Write(string val);
-        int Write(byte[] data);
-        int Write(byte[] data, int index, int length);
+        bool Ping();
     }
 }

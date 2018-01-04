@@ -216,12 +216,12 @@ namespace Sweet.Redis.v2
                             IPAddress[] ipAddresses = null;
                             if (host.Equals(RedisConstants.LocalHost, StringComparison.OrdinalIgnoreCase))
                             {
-                                if (RedisSocket.OSSupportsIPv4)
+                                if (Socket.OSSupportsIPv4)
                                 {
                                     isIp = true;
                                     ipAddresses = new[] { IPAddress.Parse(RedisConstants.IP4Loopback) };
                                 }
-                                else if (RedisSocket.OSSupportsIPv6)
+                                else if (Socket.OSSupportsIPv6)
                                 {
                                     isIp = true;
                                     ipAddresses = new[] { IPAddress.Parse(RedisConstants.IP6Loopback) };

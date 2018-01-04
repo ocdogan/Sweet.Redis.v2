@@ -50,9 +50,9 @@ namespace Sweet.Redis.v2
 
                 // MultiThreadingGetTest1();
                 // MultiThreadingGetTest2();
-                // MultiThreadingGetTest3();
+                MultiThreadingGetTest3();
                 // MultiThreadingGetTest4();
-                MultiThreadingGetTest5();
+                // MultiThreadingGetTest5();
                 // MultiThreadingGetTest6();
             }
             while (Console.ReadKey(true).Key != ConsoleKey.Escape);
@@ -127,7 +127,6 @@ namespace Sweet.Redis.v2
             using (var manager = new RedisAsyncServer(new RedisConnectionSettings(RedisHost, RedisPort, bulkSendFactor: 10000, connectionCount: 2)))
             {
                 var loopIndex = 1;
-                List<Thread> thList = null;
                 do
                 {
                     Console.Clear();
@@ -139,23 +138,7 @@ namespace Sweet.Redis.v2
                             setup(db);
                     }
 
-                    var oldThList = thList;
-                    if (oldThList != null)
-                    {
-                        for (var i = 0; i < oldThList.Count; i++)
-                        {
-                            var th = oldThList[i];
-                            try
-                            {
-                                if (th.IsAlive)
-                                    th.Interrupt();
-                            }
-                            catch (Exception)
-                            { }
-                        }
-                    }
-
-                    thList = new List<Thread>(threadCount);
+                    var thList = new List<Thread>(threadCount);
                     var results = new Dictionary<string, TestResult>();
 
                     try
@@ -255,8 +238,19 @@ namespace Sweet.Redis.v2
                         WaitHandle.WaitAll(autoResets);
                     }
 
-                    Console.Clear();
+                    for (var i = 0; i < thList.Count; i++)
+                    {
+                        try
+                        {
+                            var th = thList[i];
+                            if (th.IsAlive)
+                                th.Abort();
+                        }
+                        catch (Exception)
+                        { }
+                    }
 
+                    Console.Clear();
                     var sumOfResults = new TestResult { TestName = "Sum" };
 
                     foreach (var kv in results)
