@@ -72,6 +72,7 @@
     <Compile Include="Connection\Monitor\RedisMonitorSocket.cs" />
     <Compile Include="Connection\PubSub\RedisPubSubChannel.cs" />
     <Compile Include="Connection\PubSub\RedisPubSubSocket.cs" />
+    <Compile Include="Connection\Settings\RedisSentinelSettings.cs" />
     <Compile Include="Interfaces\IRedisBatchCommand.cs" />
     <Compile Include="Common\Command\RedisBatchCommand.cs" />
     <Compile Include="Common\Command\RedisCommand.cs" />

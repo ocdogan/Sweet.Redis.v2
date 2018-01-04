@@ -30,7 +30,7 @@ namespace Sweet.Redis.v2
     {
         #region Methods
 
-        public static IRedisSentinelClient NewSentinel(RedisConnectionSettings settings)
+        public static IRedisSentinelClient NewClient(RedisSentinelSettings settings)
         {
             if (settings == null)
                 throw new RedisFatalException(new ArgumentNullException("settings"), RedisErrorCode.MissingParameter);

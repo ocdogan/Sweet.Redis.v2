@@ -38,7 +38,7 @@ namespace Sweet.Redis.v2
 
         #region .Ctors
 
-        public RedisSentinelClient(RedisConnectionSettings settings)
+        public RedisSentinelClient(RedisSentinelSettings settings)
             : base(settings)
         {
             m_Executer = new RedisAsyncCommandExecuter(this, RedisConstants.UninitializedDbIndex, settings.ThrowOnError);
