@@ -31,7 +31,7 @@ using System.Net.Sockets;
 
 namespace Sweet.Redis.v2
 {
-    public class RedisEndPoint : IEquatable<RedisEndPoint>, ICloneable
+    public class RedisEndPoint : EndPoint, IEquatable<RedisEndPoint>, ICloneable
     {
         #region RedisIPAddressEntry
 
@@ -103,7 +103,11 @@ namespace Sweet.Redis.v2
 
         #region Field Members
 
+        private int m_Port;
+        private string m_Host;
+
         private RedisIPAddressEntry m_Entry;
+        private AddressFamily m_AddressFamily = AddressFamily.Unknown;
 
         #endregion Field Members
 
@@ -123,21 +127,45 @@ namespace Sweet.Redis.v2
 
         public RedisEndPoint(string host, int port)
         {
-            Host = host ?? String.Empty;
-            Port = port;
+            m_Host = host ?? String.Empty;
+            m_Port = port;
         }
 
         #endregion .Ctors
 
         #region Properties
 
-        public string Host { get; private set; }
+        public string Host
+        {
+            get { return m_Host; }
+            private set { m_Host = value ?? String.Empty; }
+        }
 
-        public int Port { get; private set; }
+        public int Port
+        {
+            get { return m_Port; }
+            private set { m_Port = value; }
+        }
 
         public bool IsEmpty
         {
-            get { return Host.IsEmpty() || Port < 1; }
+            get { return m_Host.IsEmpty() || m_Port < 1; }
+        }
+
+        public override AddressFamily AddressFamily
+        {
+            get
+            {
+                if (m_AddressFamily == AddressFamily.Unknown)
+                {
+                    var entry = GetEntry(m_Host);
+
+                    if (entry == null || entry.IPAddresses.IsEmpty())
+                        m_AddressFamily = AddressFamily.Unspecified;
+                    else m_AddressFamily = entry.IPAddresses[0].AddressFamily;
+                }
+                return m_AddressFamily;
+            }
         }
 
         #endregion Properties
@@ -216,7 +244,7 @@ namespace Sweet.Redis.v2
                             IPAddress[] ipAddresses = null;
                             if (host.Equals(RedisConstants.LocalHost, StringComparison.OrdinalIgnoreCase))
                             {
-                                if (Socket.OSSupportsIPv4)
+                                if (RedisCommon.OSSupportsIPv4)
                                 {
                                     isIp = true;
                                     ipAddresses = new[] { IPAddress.Parse(RedisConstants.IP4Loopback) };
@@ -252,9 +280,9 @@ namespace Sweet.Redis.v2
                             }
 
                             if (entry != null)
-                                entry.SetIPAddresses(ipAddresses, isIp);
+                                entry.SetIPAddresses(ipAddresses ?? EmptyAddresses, isIp);
                             else
-                                s_DnsEntries[host] = entry = new RedisIPAddressEntry(host, ipAddresses, isIp);
+                                s_DnsEntries[host] = entry = new RedisIPAddressEntry(host, ipAddresses ?? EmptyAddresses, isIp);
                         }
                     }
                 }

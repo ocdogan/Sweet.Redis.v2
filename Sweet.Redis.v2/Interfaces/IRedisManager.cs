@@ -23,19 +23,22 @@
 #endregion License
 
 using System;
-using System.Net;
 
 namespace Sweet.Redis.v2
 {
-    public interface IRedisMonitorChannel : IRedisDisposableBase
+    public interface IRedisManager : IRedisNamedObject, IRedisIdentifiedObject, IRedisDisposable
     {
-        EndPoint EndPoint { get; }
+        RedisManagerSettings Settings { get; }
 
-        bool Ping();
-        void Monitor();
-        void Quit();
-
-        void Subscribe(Action<RedisMonitorMessage> callback);
-        void UnregisterSubscription(Action<RedisMonitorMessage> callback);
+        IRedisTransaction BeginTransaction(bool readOnly, int dbIndex = 0);
+        IRedisTransaction BeginTransaction(Func<RedisNodeInfo, bool> nodeSelector, int dbIndex = 0);
+        IRedisPipeline CreatePipeline(bool readOnly, int dbIndex = 0);
+        IRedisPipeline CreatePipeline(Func<RedisNodeInfo, bool> nodeSelector, int dbIndex = 0);
+        IRedisAdmin GetAdmin(Func<RedisNodeInfo, bool> nodeSelector);
+        IRedisDb GetDb(bool readOnly, int dbIndex = 0);
+        IRedisDb GetDb(Func<RedisNodeInfo, bool> nodeSelector, int dbIndex = 0);
+        IRedisMonitorChannel GetMonitorChannel(Func<RedisNodeInfo, bool> nodeSelector);
+        IRedisPubSubChannel GetPubSubChannel(Func<RedisNodeInfo, bool> nodeSelector);
+        void Refresh();
     }
 }

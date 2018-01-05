@@ -23,6 +23,8 @@
 #endregion License
 
 using System;
+using System.Linq;
+using System.Net;
 using System.Threading;
 
 namespace Sweet.Redis.v2
@@ -34,16 +36,53 @@ namespace Sweet.Redis.v2
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
 
         #endregion Field Members
+        
         #region .Ctors
 
-        public RedisManagedSentinelNode(RedisManagerSettings settings, RedisRole role, RedisManagedSentinelListener sentinel,
+        public RedisManagedSentinelNode(RedisManagerSettings settings, RedisManagedSentinelListener sentinel,
                                     Action<object, RedisCardioPulseStatus> onPulseStateChange, bool ownsSeed = true)
-            : base(settings, role, sentinel, onPulseStateChange, ownsSeed)
+            : base(settings, RedisRole.Sentinel, sentinel, onPulseStateChange, ownsSeed)
         {
             m_OnPulseStateChange = onPulseStateChange;
-            m_EndPoint = (sentinel != null) ? sentinel.EndPoint : RedisEndPoint.Empty;
+
+            m_EndPoint = GetEndPoint(sentinel);
+
             if (sentinel != null)
                 sentinel.SetOnPulseStateChange(onPulseStateChange);
+        }
+
+        private RedisEndPoint GetEndPoint(RedisManagedSentinelListener sentinel)
+        {
+            var result = (RedisEndPoint)null;
+            if (sentinel != null)
+            {
+                var sEndPoint = sentinel.EndPoint;
+                if (sEndPoint != null)
+                {
+                    result = sEndPoint as RedisEndPoint;
+                    if (result == null)
+                    {
+                        var ipEP = sEndPoint as IPEndPoint;
+                        if (ipEP != null)
+                            result = new RedisEndPoint(ipEP.Address.ToString(), ipEP.Port);
+                        else
+                        {
+                            var dnsEP = sEndPoint as DnsEndPoint;
+                            if (dnsEP != null)
+                                result = new RedisEndPoint(dnsEP.Host, ipEP.Port);
+                        }
+                    }
+                }
+            }
+
+            if (result == null || result.IsEmpty)
+            {
+                var endPoints = Settings.EndPoints;
+                if (!endPoints.IsEmpty())
+                    result = endPoints.FirstOrDefault(ep => ep != null && !ep.IsEmpty);
+            }
+
+            return result ?? RedisEndPoint.Empty;
         }
 
         #endregion .Ctors
@@ -73,7 +112,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public RedisManagedSentinelListener Sentinel
+        public RedisManagedSentinelListener Listener
         {
             get { return (RedisManagedSentinelListener)m_Seed; }
         }
@@ -173,7 +212,7 @@ namespace Sweet.Redis.v2
             }
 
             if (!Disposed)
-                m_EndPoint = sentinel.IsAlive() ? sentinel.EndPoint : RedisEndPoint.Empty;
+                m_EndPoint = GetEndPoint(sentinel);
 
             if (sentinel.IsAlive())
                 sentinel.SetOnPulseStateChange(m_OnPulseStateChange);

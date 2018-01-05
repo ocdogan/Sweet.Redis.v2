@@ -22,6 +22,7 @@
 //      THE SOFTWARE.
 #endregion License
 
+using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using System.Text;
@@ -48,6 +49,7 @@ namespace Sweet.Redis.v2
 
         public RedisManagerSettings(string host = RedisConstants.LocalHost,
             int port = RedisConstants.DefaultSentinelPort,
+            RedisManagerType managerType = RedisManagerType.MasterSlave,
             string masterName = null,
             string password = null,
             string clientName = null,
@@ -67,13 +69,14 @@ namespace Sweet.Redis.v2
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
-            : this(new[] { new RedisEndPoint(host, port) }, masterName, password, clientName, connectionCount, connectionTimeout,
+            : this(new[] { new RedisEndPoint(host, port) }, managerType, masterName, password, clientName, connectionCount, connectionTimeout,
                 receiveTimeout, sendTimeout, connectionWaitTimeout, readBufferSize, writeBufferSize, heartBeatEnabled, hearBeatIntervalInSecs,
                 bulkSendFactor, useBackgroundThread, throwOnError, useSlaveAsMasterIfNoMasterFound, 
                 useSsl, sslCertificateSelection, sslCertificateValidation)
         { }
 
         public RedisManagerSettings(HashSet<RedisEndPoint> endPoints,
+            RedisManagerType managerType = RedisManagerType.MasterSlave,
             string masterName = null,
             string password = null,
             string clientName = null,
@@ -93,13 +96,14 @@ namespace Sweet.Redis.v2
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
-            : this(ToEndPointList(endPoints, RedisConstants.DefaultSentinelPort), masterName, password, clientName, connectionCount,
-                connectionTimeout, receiveTimeout, sendTimeout, connectionWaitTimeout, readBufferSize, writeBufferSize,
+            : this(ToEndPointList(endPoints, RedisConstants.DefaultSentinelPort), managerType, masterName, password, clientName, 
+                connectionCount, connectionTimeout, receiveTimeout, sendTimeout, connectionWaitTimeout, readBufferSize, writeBufferSize,
                 heartBeatEnabled, hearBeatIntervalInSecs, bulkSendFactor, useBackgroundThread, throwOnError,
                 useSlaveAsMasterIfNoMasterFound, useSsl, sslCertificateSelection, sslCertificateValidation)
         { }
 
         public RedisManagerSettings(RedisEndPoint[] endPoints = null,
+            RedisManagerType managerType = RedisManagerType.MasterSlave,
             string masterName = null,
             string password = null,
             string clientName = null,
@@ -129,11 +133,7 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public int ConnectionIdleTimeout { get; private set; }
-
-        public int MaxConnectionCount { get; private set; }
-
-        public bool UseAsyncCompleter { get; private set; }
+        public RedisManagerType ManagerType { get; private set; }
 
         public bool UseSlaveAsMasterIfNoMasterFound { get; private set; }
 
@@ -146,6 +146,7 @@ namespace Sweet.Redis.v2
             return new RedisManagerSettings(
                             host ?? RedisConstants.LocalHost,
                             port < 1 ? RedisConstants.DefaultSentinelPort : port,
+                            ManagerType,
                             MasterName,
                             Password,
                             ClientName,
@@ -171,6 +172,13 @@ namespace Sweet.Redis.v2
         {
             base.WriteTo(sBuilder);
 
+            if (ManagerType != RedisManagerType.MasterSlave)
+            {
+                sBuilder.Append("managerType=");
+                sBuilder.Append(ManagerType.ToString("F"));
+                sBuilder.Append(';');
+            }
+
             if (UseSlaveAsMasterIfNoMasterFound)
             {
                 sBuilder.Append("useSlaveAsMasterIfNoMasterFound=");
@@ -185,14 +193,27 @@ namespace Sweet.Redis.v2
         {
             base.SetSettings(settings);
 
-            object value;
-            if (settings.TryGetValue("useslaveasmasterifnomasterfound", out value))
-                UseSlaveAsMasterIfNoMasterFound = (bool)value;
+            foreach (var kv in settings)
+            {
+                switch (kv.Key)
+                {
+                    case "managertype":
+                        ManagerType = (RedisManagerType)kv.Value;
+                        break;
+                    case "useslaveasmasterifnomasterfound":
+                        UseSlaveAsMasterIfNoMasterFound = (bool)kv.Value;
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         protected override IDictionary<string, object> GetSettingsWithDefaults()
         {
             var settings = base.GetSettingsWithDefaults();
+
+            settings["managertype"] = RedisManagerType.MasterSlave;
             settings["useslaveasmasterifnomasterfound"] = false;
 
             return settings;
@@ -203,8 +224,17 @@ namespace Sweet.Redis.v2
             if (base.ParseProperty(settings, key, value))
                 return true;
 
-            if (key == "useslaveasmasterifnomasterfound")
-                settings[key] = bool.Parse(value);
+            switch (key)
+            {
+                case "managertype":
+                    settings[key] = Enum.Parse(typeof(RedisManagerType), value);
+                    break;
+                case "useslaveasmasterifnomasterfound":
+                    settings[key] = bool.Parse(value);
+                    break;
+                default:
+                    return false;
+            }
             return true;
         }
 

@@ -154,6 +154,46 @@ namespace Sweet.Redis.v2
             get { return -1; }
         }
 
+        public virtual EndPoint EndPoint
+        {
+            get
+            {
+                var endPoint = (EndPoint)m_EndPoint;
+                if (endPoint == null)
+                {
+                    var socket = m_Socket;
+                    if (socket != null)
+                    {
+                        endPoint = socket.EndPoint;
+                        m_EndPoint = endPoint as IPEndPoint;
+
+                        if (m_EndPoint == null)
+                        {
+                            var settings = Settings;
+                            if (settings != null)
+                            {
+                                var endPoints = settings.EndPoints;
+                                if (!endPoints.IsEmpty())
+                                {
+                                    foreach (var ep in endPoints)
+                                        if (ep != null)
+                                        {
+                                            var ipEPs = ep.ResolveHost();
+                                            if (!ipEPs.IsEmpty())
+                                            {
+                                                endPoint = (m_EndPoint = new IPEndPoint(ipEPs[0], ep.Port));
+                                                break;
+                                            }
+                                        }
+                                }
+                            }
+                        }
+                    }
+                }
+                return endPoint;
+            }
+        }
+
         public virtual RedisRole ExpectedRole
         {
             get { return RedisRole.Undefined; }

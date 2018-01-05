@@ -72,25 +72,6 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public override RedisEndPoint EndPoint
-        {
-            get
-            {
-                var settings = Settings;
-                if (settings != null)
-                {
-                    var endPoints = settings.EndPoints;
-                    if (endPoints != null)
-                    {
-                        var result = endPoints.FirstOrDefault(ep => !ep.IsEmpty());
-                        return (result != null) ? (RedisEndPoint)result.Clone() : RedisEndPoint.Empty;
-                    }
-                }
-
-                return RedisEndPoint.Empty;
-            }
-        }
-
         public bool IsDown
         {
             get { return m_SDown || m_ODown || Disposed; }

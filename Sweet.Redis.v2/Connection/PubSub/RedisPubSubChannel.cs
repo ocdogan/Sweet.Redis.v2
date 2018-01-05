@@ -120,25 +120,6 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public virtual RedisEndPoint EndPoint
-        {
-            get
-            {
-                var settings = Settings;
-                if (settings != null)
-                {
-                    var endPoints = settings.EndPoints;
-                    if (!endPoints.IsEmpty())
-                    {
-                        foreach (var ep in endPoints)
-                            if (ep != null)
-                                return (RedisEndPoint)ep.Clone();
-                    }
-                }
-                return RedisEndPoint.Empty;
-            }
-        }
-
         public bool PubSubing
         {
             get
@@ -488,24 +469,6 @@ namespace Sweet.Redis.v2
                 }
             }
             return result;
-        }
-
-        public virtual bool Ping()
-        {
-            if (!Disposed)
-            {
-                try
-                {
-                    RunSyncTask(new RedisCommand(RedisConstants.UninitializedDbIndex,
-                                            RedisCommandList.Ping,
-                                            RedisCommandType.SendAndReceive)
-                    { Priority = RedisCommandPriority.High });
-                    return true;
-                }
-                catch (Exception)
-                { }
-            }
-            return false;
         }
 
         protected override bool NeedsToDiscoverRole()

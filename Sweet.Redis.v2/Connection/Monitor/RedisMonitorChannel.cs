@@ -74,25 +74,6 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public RedisEndPoint EndPoint
-        {
-            get
-            {
-                var settings = Settings;
-                if (settings != null)
-                {
-                    var endPoints = settings.EndPoints;
-                    if (!endPoints.IsEmpty())
-                    {
-                        foreach (var ep in endPoints)
-                            if (ep != null)
-                                return (RedisEndPoint)ep.Clone();
-                    }
-                }
-                return RedisEndPoint.Empty;
-            }
-        }
-
         public bool Monitoring
         {
             get

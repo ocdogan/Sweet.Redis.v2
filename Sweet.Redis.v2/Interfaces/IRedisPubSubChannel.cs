@@ -23,12 +23,13 @@
 #endregion License
 
 using System;
+using System.Net;
 
 namespace Sweet.Redis.v2
 {
     public interface IRedisPubSubChannel : IRedisDisposableBase
     {
-        RedisEndPoint EndPoint { get; }
+        EndPoint EndPoint { get; }
         DateTime LastMessageSeenTime { get; }
 
         bool Ping();

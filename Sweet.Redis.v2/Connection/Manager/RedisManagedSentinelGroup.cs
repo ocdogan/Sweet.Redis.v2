@@ -195,7 +195,7 @@ namespace Sweet.Redis.v2
             {
                 try
                 {
-                    var channel = node.Sentinel;
+                    var channel = node.Listener;
                     if (channel.IsAlive())
                     {
                         if (!channel.Ping())

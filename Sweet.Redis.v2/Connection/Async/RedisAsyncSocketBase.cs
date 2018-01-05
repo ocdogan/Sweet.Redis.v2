@@ -45,6 +45,12 @@ namespace Sweet.Redis.v2
 
         #endregion Constants
 
+        #region Static Members
+
+        public static readonly IPEndPoint Any = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+        
+        #endregion Static Members
+
         #region Field Members
 
         #region Readonly
@@ -150,6 +156,17 @@ namespace Sweet.Redis.v2
                     Interlocked.Exchange(ref m_ConnectionStatus, RedisAsyncClientStatus.Idle);
                 }
                 return false;
+            }
+        }
+
+        public virtual EndPoint EndPoint
+        {
+            get
+            {
+                var socket = m_Socket;
+                if (socket != null)
+                    return socket.RemoteEndPoint;
+                return Any;
             }
         }
 

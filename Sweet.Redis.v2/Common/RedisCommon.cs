@@ -51,7 +51,7 @@ namespace Sweet.Redis.v2
 
         private static readonly byte[] IntMinValue = UTF8.GetBytes("-2147483648");
         private static readonly byte[] IntMaxValue = UTF8.GetBytes("2147483647");
-        
+
         private static readonly byte[] LongMinValue = UTF8.GetBytes("-9223372036854775808");
         private static readonly byte[] LongMaxValue = UTF8.GetBytes("9223372036854775807");
 
@@ -111,6 +111,14 @@ namespace Sweet.Redis.v2
                     }
                 }
                 return s_IsWinPlatform.Value;
+            }
+        }
+
+        public static bool OSSupportsIPv4
+        {
+            get
+            {
+                return Socket.SupportsIPv4;
             }
         }
 
@@ -590,7 +598,7 @@ namespace Sweet.Redis.v2
         {
             return (obj == null || obj.Length == 0);
         }
-        
+
         internal static bool IsEmpty(this ICollection obj)
         {
             return (obj == null || obj.Count == 0);
@@ -1112,7 +1120,7 @@ namespace Sweet.Redis.v2
 
             return result;
         }
-        
+
         internal static byte[] ToBytes(this int value)
         {
             var minus = (value < 0);
@@ -2121,7 +2129,7 @@ namespace Sweet.Redis.v2
                 catch (Exception)
                 { }
             }
-        }       
+        }
 
         #endregion Socket
 

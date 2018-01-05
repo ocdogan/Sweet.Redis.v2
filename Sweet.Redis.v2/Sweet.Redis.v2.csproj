@@ -167,6 +167,7 @@
     </Compile>
     <Compile Include="Interfaces\IRedisKeysCommands.cs" />
     <Compile Include="Interfaces\IRedisListsCommands.cs" />
+    <Compile Include="Interfaces\IRedisManager.cs" />
     <Compile Include="Interfaces\IRedisMonitorChannel.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -277,15 +278,13 @@
     <Compile Include="Common\RedisSynchronizedDictionary.cs" />
     <Compile Include="Connection\Async\RedisAsyncServer.cs" />
     <Compile Include="Interfaces\IRedisServer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Connection\CommandExecuter\" />
-    <Folder Include="Connection\Continuous\" />
-    <Folder Include="Connection\Pooling\" />
+    <Compile Include="Connection\Manager\RedisManagedEndPointResolver.cs" />
+    <Compile Include="Connection\Common\RedisEndPointRsolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="License.md" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
