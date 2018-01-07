@@ -86,7 +86,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        protected override bool UseBackgroundThread
+        protected internal override bool UseBackgroundThread
         {
             get { return true; }
         }

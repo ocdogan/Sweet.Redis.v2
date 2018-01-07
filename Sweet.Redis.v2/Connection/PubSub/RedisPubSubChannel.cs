@@ -132,7 +132,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        protected override bool UseBackgroundThread
+        protected internal override bool UseBackgroundThread
         {
             get { return true; }
         }
@@ -194,7 +194,8 @@ namespace Sweet.Redis.v2
                     RunSyncTask(new RedisCommand(RedisConstants.UninitializedDbIndex,
                                         RedisCommandList.Subscribe,
                                         RedisCommandType.SendNotReceive,
-                                        newItems.ToArray()) { Priority = RedisCommandPriority.High });
+                                        newItems.ToArray())
+                    { Priority = RedisCommandPriority.High });
                 }
             }
         }
@@ -290,7 +291,8 @@ namespace Sweet.Redis.v2
                     RunSyncTask(new RedisCommand(RedisConstants.UninitializedDbIndex,
                                         RedisCommandList.PSubscribe,
                                         RedisCommandType.SendNotReceive,
-                                        newItems.ToArray()) { Priority = RedisCommandPriority.High });
+                                        newItems.ToArray())
+                    { Priority = RedisCommandPriority.High });
                 }
             }
         }
@@ -435,7 +437,7 @@ namespace Sweet.Redis.v2
             {
                 m_PSubscriptions.UnregisterAll();
             }
-            
+
             RunSyncTask(
                 new[] { new RedisCommand(RedisConstants.UninitializedDbIndex,
                     RedisCommandList.PUnsubscribe,
@@ -485,7 +487,7 @@ namespace Sweet.Redis.v2
 
         protected virtual void MessageReceived(RedisPubSubMessage message)
         {
-            if (!Disposed && 
+            if (!Disposed &&
                 !ReferenceEquals(message, null) && !message.IsEmpty &&
                 CanSendMessage(message))
             {

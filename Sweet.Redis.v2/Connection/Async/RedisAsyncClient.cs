@@ -104,19 +104,7 @@ namespace Sweet.Redis.v2
         {
             if (UseBackgroundThread)
             {
-                try
-                {
-                    var thread = Interlocked.Exchange(ref m_BackgroundThread, null);
-                    lock (m_SendWaitingQ)
-                    {
-                        Monitor.PulseAll(m_SendWaitingQ);
-                    }
-
-                    if (thread != null)
-                        thread.Abort();
-                }
-                catch (Exception)
-                { }
+                AbortBackgroundThread();
             }
 
             base.OnDispose(disposing);
@@ -244,9 +232,20 @@ namespace Sweet.Redis.v2
             get { return m_ThrowOnError; }
         }
 
-        protected virtual bool UseBackgroundThread
+        protected internal virtual bool UseBackgroundThread
         {
             get { return m_UseBackgroundThread; }
+            set
+            {
+                if (m_UseBackgroundThread != value)
+                {
+                    m_UseBackgroundThread = value;
+                    if (value)
+                        AbortBackgroundThread();
+                    else if (m_SendStatus == 0 && !m_SendWaitingQ.IsEmpty)
+                        InitBackgroundThread();
+                }
+            }
         }
 
         protected bool ThreadRunning
@@ -333,8 +332,7 @@ namespace Sweet.Redis.v2
         }
 
         protected virtual void OnQuit()
-        {
-        }
+        { }
 
         private static ParameterizedThreadStart SenderThreadCallback = (state) =>
         {
@@ -908,6 +906,23 @@ namespace Sweet.Redis.v2
         #endregion Receive
 
         #region Base Methods
+
+        protected void AbortBackgroundThread()
+        {
+            try
+            {
+                var thread = Interlocked.Exchange(ref m_BackgroundThread, null);
+                lock (m_SendWaitingQ)
+                {
+                    Monitor.PulseAll(m_SendWaitingQ);
+                }
+
+                if (thread != null)
+                    thread.Abort();
+            }
+            catch (Exception)
+            { }
+        }
 
         protected bool Auth(string password)
         {

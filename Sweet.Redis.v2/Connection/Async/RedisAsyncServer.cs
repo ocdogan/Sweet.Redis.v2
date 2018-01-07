@@ -53,11 +53,26 @@ namespace Sweet.Redis.v2
 
         #region .Ctors
 
+        protected internal RedisAsyncServer(RedisAsyncClient client)
+        {
+            if (client == null)
+                throw new RedisFatalException(new ArgumentNullException("client"), RedisErrorCode.MissingParameter);
+
+            Init(client.Settings);
+            if (client.IsAlive())
+                m_Clients[0] = client;
+        }
+
         public RedisAsyncServer(RedisConnectionSettings settings)
         {
             if (settings == null)
                 throw new RedisFatalException(new ArgumentNullException("settings"), RedisErrorCode.MissingParameter);
 
+            Init(settings);
+        }
+
+        private void Init(RedisConnectionSettings settings)
+        {
             m_Settings = settings;
             m_ClientCount = settings.ConnectionCount;
             m_Clients = new RedisAsyncClient[m_ClientCount];
@@ -77,7 +92,7 @@ namespace Sweet.Redis.v2
 
         protected override void OnDispose(bool disposing)
         {
-            using (var probe = Interlocked.Exchange(ref m_HeartBeatProbe, null)) { }
+            using (Interlocked.Exchange(ref m_HeartBeatProbe, null)) { }
 
             var monitorChannel = Interlocked.Exchange(ref m_MonitorChannel, null);
             if (monitorChannel != null)

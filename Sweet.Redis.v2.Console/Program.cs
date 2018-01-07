@@ -22,7 +22,7 @@ namespace Sweet.Redis.v2
 
         #endregion TestResult
 
-        private const int RedisPort = 6380; // 6379
+        private const int RedisPort = 6379; // 6380
         private const string RedisHost = "127.0.0.1"; // "172.28.10.234"
 
         static void Main(string[] args)
@@ -36,6 +36,7 @@ namespace Sweet.Redis.v2
                 // PerformancePingTests();
                 // PerformanceGetTinyTests();
                 // PerformancePipeTests();
+                PerformanceManagerGetTinyTests();
 
                 // MonitorTest1();
                 // MonitorTest2();
@@ -65,7 +66,7 @@ namespace Sweet.Redis.v2
                 // SentinelTest8();
                 // SentinelTest9();
 
-                ManagerTest1();
+                // ManagerTest1();
                 // ManagerTest2();
                 // ManagerTest3();
                 // ManagerTest4();
@@ -2119,6 +2120,72 @@ namespace Sweet.Redis.v2
             }
         }
 
+        static TestResult[] SimpleTestManagerBase(string testName, int loopCount,
+            bool readOnly, bool continuous, Func<IRedisDb, bool> func)
+        {
+            var results = new List<TestResult>();
+
+            using (var manager = new RedisManager("My Manager",
+                    RedisConnectionSettings.Parse<RedisManagerSettings>("host=127.0.0.1:26379;masterName=mymaster")))
+            {
+                do
+                {
+                    Console.WriteLine();
+
+                    var ticks = 0L;
+                    var failCount = 0;
+
+                    var innerSw = new Stopwatch();
+                    try
+                    {
+                        using (var db = manager.GetDb(readOnly, 11))
+                        {
+                            for (var j = 0; j < loopCount; j++)
+                            {
+                                var num = j.ToString();
+
+                                innerSw.Restart();
+
+                                var ok = func(db);
+
+                                innerSw.Stop();
+
+                                ticks += innerSw.ElapsedTicks;
+
+                                if (!ok)
+                                    failCount++;
+
+                                /* Console.WriteLine("00:00" +
+                                    ", " + j.ToString("D3") +
+                                    ": Processed, " + innerSw.ElapsedMilliseconds.ToString("D3") + " msec, " +
+                                    (ok ? "OK" : "FAILED")); */
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+
+                    var elapsedMSecs = TimeSpan.FromTicks(ticks).TotalMilliseconds;
+
+                    var testResult = new TestResult
+                    {
+                        TestName = testName,
+                        LoopCount = loopCount,
+                        FailCount = failCount,
+                        SumOfInnerTicks = ticks,
+                        SumOfInnerMSecs = elapsedMSecs,
+                        Concurrency = Math.Ceiling(1000 * ((double)loopCount / elapsedMSecs))
+                    };
+                    results.Add(testResult);
+                }
+                while (continuous && Console.ReadKey(true).Key != ConsoleKey.Escape);
+
+                return results.ToArray();
+            }
+        }
+
         #endregion Common
 
         #region Unit Tests
@@ -2261,6 +2328,12 @@ namespace Sweet.Redis.v2
                 });
         }
 
+        static TestResult[] UnitTestSyncSetTinyManager(bool continuous)
+        {
+            return SimpleTestManagerBase("UnitTestSyncSetTinyManager", 1, false, continuous,
+                (db) => db.Strings.Set("tinyText", Encoding.UTF8.GetBytes("xxx")));
+        }
+
         static TestResult[] UnitTestSyncSetTiny(bool continuous)
         {
             return SimpleTestBase("UnitTestSyncSetTiny", 1, continuous,
@@ -2327,6 +2400,18 @@ namespace Sweet.Redis.v2
                 WriteResult(result);
         }
 
+        static void PerformanceManagerGetTinyTests()
+        {
+            var loopCount = 5000;
+
+            var results = UnitTestSyncSetTinyManager(false);
+            WriteResult(results[0]);
+
+            var syncResults = PerformanceManagerTestSyncGetTiny(loopCount, false);
+            foreach (var result in syncResults)
+                WriteResult(result);
+        }
+
         static TestResult[] PerformanceTestSyncPipe(int loopCount, bool continuous)
         {
             var pipedCount = 10000;
@@ -2354,6 +2439,19 @@ namespace Sweet.Redis.v2
                     return true;
                 }, pipedCount);
         }
+
+        static TestResult[] PerformanceManagerTestSyncGetTiny(int loopCount, bool continuous)
+        {
+            return SimpleTestManagerBase("PerformanceManagerTestSyncGetTiny", loopCount, true, continuous,
+                (db) =>
+                {
+                    var get1 = db.Strings.Get("tinyText");
+
+                    RedisByteArray data = get1.Value;
+                    return data == "xxx";
+                });
+        }
+
 
         static TestResult[] PerformanceTestSyncGetTiny(int loopCount, bool continuous)
         {

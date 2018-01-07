@@ -51,7 +51,7 @@ namespace Sweet.Redis.v2
             {
                 m_HeartBeatProbe = new RedisHeartBeatProbe(settings, this, null);
                 m_HeartBeatProbe.SetOnPulseStateChange(OnPulseStateChange);
-                
+
                 m_HeartBeatProbe.AttachToCardio();
             }
         }
@@ -63,8 +63,8 @@ namespace Sweet.Redis.v2
         protected override void OnDispose(bool disposing)
         {
             Interlocked.Exchange(ref m_OnPulseStateChange, null);
-            using (var probe = Interlocked.Exchange(ref m_HeartBeatProbe, null)) { }
-            
+            using (Interlocked.Exchange(ref m_HeartBeatProbe, null)) { }
+
             base.OnDispose(disposing);
         }
 
@@ -149,7 +149,7 @@ namespace Sweet.Redis.v2
                 failAction.InvokeAsync();
             }
         }
-        
+
         protected virtual void DownStateChanged(bool down)
         { }
 

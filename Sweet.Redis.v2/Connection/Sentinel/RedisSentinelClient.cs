@@ -27,24 +27,55 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisSentinelClient : RedisAsyncClient, IRedisSentinelClient, IRedisDisposable
+    internal class RedisSentinelClient : RedisDisposable, IRedisSentinelClient, IRedisDisposable
     {
         #region Field Members
 
         private IRedisSentinelCommands m_Commands;
+        private RedisAsyncClient m_Client;
         private RedisAsyncCommandExecuter m_Executer;
+
+        private bool m_ThrowOnError;
+        private long m_Id = RedisIDGenerator<RedisSentinelClient>.NextId();
 
         #endregion Field Members
 
         #region .Ctors
 
-        public RedisSentinelClient(RedisSentinelSettings settings)
-            : base(settings)
+        protected internal RedisSentinelClient(RedisAsyncClient client)
         {
-            m_Executer = new RedisAsyncCommandExecuter(this, RedisConstants.UninitializedDbIndex, settings.ThrowOnError);
+            if (client == null)
+                throw new RedisFatalException(new ArgumentNullException("client"), RedisErrorCode.MissingParameter);
+
+            m_Client = client.Disposed ? new RedisAsyncClient(client.Settings) : client;
+            m_ThrowOnError = m_Client.Settings.ThrowOnError;
+            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
+        }
+
+        public RedisSentinelClient(RedisSentinelSettings settings)
+            : base()
+        {
+            if (settings == null)
+                throw new RedisFatalException(new ArgumentNullException("settings"), RedisErrorCode.MissingParameter);
+
+            m_ThrowOnError = settings.ThrowOnError;
+            m_Client = new RedisAsyncClient(settings);
+            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
         }
 
         #endregion .Ctors
+
+        #region Destructors
+
+        protected override void OnDispose(bool disposing)
+        {
+            using (Interlocked.Exchange(ref m_Client, null)) { }
+            using (Interlocked.Exchange(ref m_Executer, null)) { }
+
+            base.OnDispose(disposing);
+        }
+
+        #endregion Destructors
 
         #region Properties
 
@@ -59,11 +90,35 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public override RedisRole ExpectedRole
+        public RedisRole ExpectedRole
         {
             get { return RedisRole.Sentinel; }
         }
 
+        public int DbIndex
+        {
+            get { return RedisConstants.UninitializedDbIndex; }
+        }
+
+        public long Id
+        {
+            get { return m_Id; }
+        }
+
+        public bool ThrowOnError
+        {
+            get { return m_ThrowOnError; }
+        }
+
         #endregion Properties
+
+        #region Methods
+
+        public override void ValidateNotDisposed()
+        {
+            base.ValidateNotDisposed();
+        }
+
+        #endregion Methods
     }
 }
