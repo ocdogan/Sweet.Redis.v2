@@ -53,12 +53,14 @@ namespace Sweet.Redis.v2
 
         #region .Ctors
 
-        protected internal RedisAsyncServer(RedisAsyncClient client)
+        protected internal RedisAsyncServer(RedisAsyncClient client, RedisConnectionSettings settings)
         {
             if (client == null)
                 throw new RedisFatalException(new ArgumentNullException("client"), RedisErrorCode.MissingParameter);
 
-            Init(client.Settings);
+            settings = settings ?? client.Settings;
+
+            Init(settings);
             if (client.IsAlive())
                 m_Clients[0] = client;
         }

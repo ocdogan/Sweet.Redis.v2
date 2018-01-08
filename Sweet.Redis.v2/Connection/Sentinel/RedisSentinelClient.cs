@@ -31,8 +31,8 @@ namespace Sweet.Redis.v2
     {
         #region Field Members
 
-        private IRedisSentinelCommands m_Commands;
         private RedisAsyncClient m_Client;
+        private IRedisSentinelCommands m_Commands;
         private RedisAsyncCommandExecuter m_Executer;
 
         private bool m_ThrowOnError;

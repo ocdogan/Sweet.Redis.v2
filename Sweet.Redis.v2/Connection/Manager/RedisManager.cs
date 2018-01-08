@@ -1209,9 +1209,11 @@ namespace Sweet.Redis.v2
                                 // Master or Slave
                                 if (discoveredRole != RedisRole.Sentinel)
                                 {
-                                    var newServer = new RedisManagedServer(settings, discoveredRole, null);
-                                    node = new RedisManagedServerNode(settings, discoveredRole, newServer, null);
+                                    var newServer = new RedisManagedServer(client, settings, discoveredRole, null);
+                                    // TODO
+                                    // newServer.ReuseSocket(client);
 
+                                    node = new RedisManagedServerNode(settings, discoveredRole, newServer, null);
                                     nodesGroup.AppendNode(node);
 
                                     var wasDown = newServer.IsDown;
@@ -1222,7 +1224,7 @@ namespace Sweet.Redis.v2
                                 }
                                 else // Sentinel
                                 {
-                                    var newListener = new RedisManagedSentinelListener(settings, null);
+                                    var newListener = new RedisManagedSentinelListener(client, settings, null);
                                     // TODO
                                     // newListener.ReuseSocket(client);
 

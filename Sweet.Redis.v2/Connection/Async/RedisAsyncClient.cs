@@ -227,7 +227,7 @@ namespace Sweet.Redis.v2
             get { return m_Settings; }
         }
 
-        public bool ThrowOnError
+        public virtual bool ThrowOnError
         {
             get { return m_ThrowOnError; }
         }

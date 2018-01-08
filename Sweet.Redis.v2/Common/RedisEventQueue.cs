@@ -78,9 +78,15 @@ namespace Sweet.Redis.v2
 
         #endregion ManagerEvent
 
+        #region Constants
+
+        private const int EventQRegistryWaitTimeout = 5000;
+
+        #endregion Constants
+
         #region Static Members
 
-        private static long s_ProcessState;
+        private static int s_ProcessState;
         private static CancellationTokenSource s_CancelationTokenSource;
 
         private static int s_ProcessedQIndex = -1;
@@ -148,8 +154,18 @@ namespace Sweet.Redis.v2
                 var actionQ = m_ActionQ;
                 if (actionQ != null)
                 {
-                    actionQ.Enqueue(new ManagerEvent(this, action, state));
-                    Start();
+                    lock (s_EventQRegistryLock)
+                    {
+                        try
+                        {
+                            actionQ.Enqueue(new ManagerEvent(this, action, state));
+                            Start();
+                        }
+                        finally
+                        {
+                            Monitor.PulseAll(s_EventQRegistryLock);
+                        }
+                    }
                 }
             }
         }
@@ -163,13 +179,23 @@ namespace Sweet.Redis.v2
         private void ClearInternal()
         {
             var actionQ = Interlocked.Exchange(ref m_ActionQ, new RedisSynchronizedQueue<ManagerEvent>());
-            if (actionQ != null)
+            if (actionQ != null && !actionQ.IsEmpty)
             {
-                ManagerEvent mEvent;
-                while (actionQ.TryDequeue(out mEvent))
+                try
                 {
-                    if (mEvent != null)
-                        mEvent.Dispose();
+                    ManagerEvent mEvent;
+                    while (actionQ.TryDequeue(out mEvent))
+                    {
+                        if (mEvent != null)
+                            mEvent.Dispose();
+                    }
+                }
+                finally
+                {
+                    lock (s_EventQRegistryLock)
+                    {
+                        Monitor.PulseAll(s_EventQRegistryLock);
+                    }
                 }
             }
         }
@@ -182,12 +208,19 @@ namespace Sweet.Redis.v2
         {
             if ((eventQ != null) && !eventQ.m_Registered)
             {
-                lock (s_EventQRegistry)
+                lock (s_EventQRegistryLock)
                 {
                     if (!eventQ.m_Registered)
                     {
-                        eventQ.m_Registered = true;
-                        s_EventQRegistry.Add(eventQ);
+                        try
+                        {
+                            eventQ.m_Registered = true;
+                            s_EventQRegistry.Add(eventQ);
+                        }
+                        finally
+                        {
+                            Monitor.PulseAll(s_EventQRegistryLock);
+                        }
                     }
                 }
             }
@@ -197,33 +230,35 @@ namespace Sweet.Redis.v2
         {
             if ((eventQ != null) && eventQ.m_Registered)
             {
-                lock (s_EventQRegistry)
+                lock (s_EventQRegistryLock)
                 {
                     if (eventQ.m_Registered)
                     {
-                        eventQ.m_Registered = false;
-
-                        s_EventQRegistry.Remove(eventQ);
-                        if (s_EventQRegistry.Count == 0)
+                        try
                         {
-                            var cts = Interlocked.Exchange(ref s_CancelationTokenSource, null);
-                            if (cts != null)
-                                cts.Cancel();
+                            eventQ.m_Registered = false;
+
+                            s_EventQRegistry.Remove(eventQ);
+                            if (s_EventQRegistry.Count == 0)
+                            {
+                                var cts = Interlocked.Exchange(ref s_CancelationTokenSource, null);
+                                if (cts != null)
+                                    cts.Cancel();
+                            }
+                        }
+                        finally
+                        {
+                            Monitor.PulseAll(s_EventQRegistryLock);
                         }
                     }
                 }
             }
         }
 
-        private static bool Initialize()
-        {
-            return Interlocked.CompareExchange(ref s_ProcessState, (long)RedisProcessState.Initialized,
-                                            (long)RedisProcessState.Idle) == (long)RedisProcessState.Idle;
-        }
-
         private static void Start()
         {
-            if (Initialize())
+            if (Interlocked.CompareExchange(ref s_ProcessState, (int)RedisProcessState.Initialized,
+                                            (int)RedisProcessState.Idle) == (int)RedisProcessState.Idle)
             {
                 try
                 {
@@ -237,63 +272,74 @@ namespace Sweet.Redis.v2
 
                     task.ContinueWith(t =>
                     {
-                        Interlocked.Exchange(ref s_ProcessState, (long)RedisProcessState.Idle);
+                        Interlocked.Exchange(ref s_ProcessState, (int)RedisProcessState.Idle);
                     });
 
                     task.Start();
                 }
                 catch (Exception)
                 {
-                    Interlocked.Exchange(ref s_ProcessState, (long)RedisProcessState.Idle);
+                    Interlocked.Exchange(ref s_ProcessState, (int)RedisProcessState.Idle);
                 }
             }
+        }
+
+        private static RedisEventQueue SeekNextQueue()
+        {
+            var index = NextIndex();
+            var startIndex = index;
+            do
+            {
+                if (index < 0)
+                    break;
+
+                var eventQ = s_EventQRegistry[index];
+                if (eventQ.Count > 0)
+                    return eventQ;
+
+                index = NextIndex();
+                if (startIndex >= s_EventQRegistry.Count)
+                    startIndex = 0;
+            } while (index != startIndex);
+        
+            return null;
         }
 
         private static RedisEventQueue NextQueue()
         {
             lock (s_EventQRegistryLock)
             {
-                var index = NextIndex();
-                var startIndex = index;
-                do
+                var result = SeekNextQueue();
+                if (result != null)
+                    Monitor.PulseAll(s_EventQRegistryLock);
+                else
                 {
-                    if (index < 0)
-                        break;
-
-                    var eventQ = s_EventQRegistry[index];
-                    if (eventQ.Count > 0)
-                        return eventQ;
-
-                    index = NextIndex();
-                    if (startIndex >= s_EventQRegistry.Count)
-                        startIndex = 0;
-                } while (index != startIndex);
-                return null;
+                    Monitor.Wait(s_EventQRegistryLock, EventQRegistryWaitTimeout);
+                    result = SeekNextQueue();
+                }
+                return result;
             }
         }
 
         private static int NextIndex()
         {
-            lock (s_EventQRegistryLock)
+            var maxIndex = s_EventQRegistry.Count - 1;
+            if (maxIndex < 0)
+                s_ProcessedQIndex = -1;
+            else
             {
-                var maxIndex = s_EventQRegistry.Count - 1;
-                if (maxIndex < 0)
-                    s_ProcessedQIndex = -1;
-                else
-                {
-                    s_ProcessedQIndex++;
-                    if (s_ProcessedQIndex > maxIndex)
-                        s_ProcessedQIndex = 0;
-                }
-                return s_ProcessedQIndex;
+                s_ProcessedQIndex++;
+                if (s_ProcessedQIndex > maxIndex)
+                    s_ProcessedQIndex = 0;
             }
+            return s_ProcessedQIndex;
         }
 
         private static void Process(CancellationToken token)
         {
             try
             {
-                Interlocked.Exchange(ref s_ProcessState, (long)RedisProcessState.Processing);
+                Interlocked.Exchange(ref s_ProcessState, (int)RedisProcessState.Processing);
 
                 var processed = false;
                 var idleTime = (DateTime?)null;
@@ -317,9 +363,16 @@ namespace Sweet.Redis.v2
                             {
                                 lock (s_EventQRegistryLock)
                                 {
-                                    var count = s_EventQRegistry.Count;
-                                    if (count == 0)
-                                        break;
+                                    try
+                                    {
+                                        var count = s_EventQRegistry.Count;
+                                        if (count == 0)
+                                            break;
+                                    }
+                                    finally
+                                    {
+                                        Monitor.PulseAll(s_EventQRegistryLock);
+                                    }
                                 }
                             }
                         }
@@ -337,7 +390,7 @@ namespace Sweet.Redis.v2
             { }
             finally
             {
-                Interlocked.Exchange(ref s_ProcessState, (long)RedisProcessState.Idle);
+                Interlocked.Exchange(ref s_ProcessState, (int)RedisProcessState.Idle);
             }
         }
 

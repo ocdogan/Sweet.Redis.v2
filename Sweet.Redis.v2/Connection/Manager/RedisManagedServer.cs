@@ -42,9 +42,9 @@ namespace Sweet.Redis.v2
 
         #region .Ctors
 
-        protected internal RedisManagedServer(RedisAsyncClient client, RedisRole role,
+        protected internal RedisManagedServer(RedisAsyncClient client, RedisConnectionSettings settings, RedisRole role,
             Action<object, RedisCardioPulseStatus> onPulseStateChange)
-            : base(client)
+            : base(client, settings)
         {
             Role = role;
             m_OnPulseStateChange = onPulseStateChange;

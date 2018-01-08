@@ -120,6 +120,11 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
+        public override int DbIndex
+        {
+            get { return RedisConstants.UninitializedDbIndex; }
+        }
+
         public bool PubSubing
         {
             get

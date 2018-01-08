@@ -28,25 +28,51 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisManagedSentinelListener : RedisPubSubChannel
+    internal class RedisManagedSentinelListener : RedisPubSubChannel, IRedisSentinelClient
     {
         #region Field Members
 
         private bool m_SDown;
         private bool m_ODown;
 
+        private RedisAsyncClient m_Client;
+        private IRedisSentinelCommands m_Commands;
+        private RedisAsyncCommandExecuter m_Executer;
+
         private RedisHeartBeatProbe m_HeartBeatProbe;
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
+
+        private bool m_ThrowOnError;
+        private long m_Id = RedisIDGenerator<RedisSentinelClient>.NextId();
 
         #endregion Field Members
 
         #region .Ctors
+
+        protected internal RedisManagedSentinelListener(RedisAsyncClient client,
+            RedisConnectionSettings settings, Action<object, RedisCardioPulseStatus> onPulseStateChange)
+            : base(settings ?? client.Settings)
+        {
+            if (client == null)
+                throw new RedisFatalException(new ArgumentNullException("client"), RedisErrorCode.MissingParameter);
+
+            settings = settings ?? client.Settings;
+
+            m_Client = client.Disposed ? new RedisAsyncClient(settings) : client;
+            m_ThrowOnError = settings.ThrowOnError;
+            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
+        }
 
         public RedisManagedSentinelListener(RedisConnectionSettings settings,
             Action<object, RedisCardioPulseStatus> onPulseStateChange)
             : base(settings)
         {
             m_OnPulseStateChange = onPulseStateChange;
+
+            m_ThrowOnError = settings.ThrowOnError;
+            m_Client = new RedisAsyncClient(settings);
+            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
+            
             if (settings.HeartBeatEnabled)
             {
                 m_HeartBeatProbe = new RedisHeartBeatProbe(settings, this, null);
@@ -65,12 +91,31 @@ namespace Sweet.Redis.v2
             Interlocked.Exchange(ref m_OnPulseStateChange, null);
             using (Interlocked.Exchange(ref m_HeartBeatProbe, null)) { }
 
+            using (Interlocked.Exchange(ref m_Client, null)) { }
+            using (Interlocked.Exchange(ref m_Executer, null)) { }
+
             base.OnDispose(disposing);
         }
 
         #endregion Destructors
 
         #region Properties
+
+        public IRedisSentinelCommands Commands
+        {
+            get
+            {
+                ValidateNotDisposed();
+                if (m_Commands == null)
+                    m_Commands = new RedisSentinelCommands(m_Executer);
+                return m_Commands;
+            }
+        }
+
+        public override RedisRole ExpectedRole
+        {
+            get { return RedisRole.Sentinel; }
+        }
 
         public bool IsDown
         {
@@ -132,6 +177,11 @@ namespace Sweet.Redis.v2
 
         #region Methods
 
+        public override void ValidateNotDisposed()
+        {
+            base.ValidateNotDisposed();
+        }
+
         protected internal void SetOnPulseStateChange(Action<object, RedisCardioPulseStatus> onPulseStateChange)
         {
             Interlocked.Exchange(ref m_OnPulseStateChange, onPulseStateChange);
@@ -154,6 +204,5 @@ namespace Sweet.Redis.v2
         { }
 
         #endregion Methods
-
     }
 }

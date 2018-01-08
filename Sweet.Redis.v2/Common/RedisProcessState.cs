@@ -24,10 +24,10 @@
 
 namespace Sweet.Redis.v2
 {
-    public enum RedisProcessState : long
+    public enum RedisProcessState : int
     {
-        Idle = 0L,
-        Initialized = 1L,
-        Processing = 2L
+        Idle = 0,
+        Initialized = 1,
+        Processing = 2
     }
 }

@@ -160,18 +160,12 @@ namespace Sweet.Redis.v2
 
                                 if (role == RedisRole.Sentinel)
                                 {
-                                    var listener = new RedisManagedSentinelListener(settings, null);
-                                    // TODO
-                                    // listener.ReuseSocket(client);
-
+                                    var listener = new RedisManagedSentinelListener(client, settings, null);
                                     nodeList.Add(new RedisManagedSentinelNode(settings, listener, null));
                                 }
                                 else
                                 {
-                                    var server = new RedisManagedServer(settings, role, null);
-                                    // TODO
-                                    // server.ReuseSocket(client);
-
+                                    var server = new RedisManagedServer(client, settings, role, null);
                                     nodeList.Add(new RedisManagedServerNode(settings, role, server, null));
                                 }
                             }
