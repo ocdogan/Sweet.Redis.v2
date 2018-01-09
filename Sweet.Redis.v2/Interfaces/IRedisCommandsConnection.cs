@@ -22,47 +22,36 @@
 //      THE SOFTWARE.
 #endregion License
 
-using System.Collections.Concurrent;
-using System.Threading;
-
 namespace Sweet.Redis.v2
 {
-    public class RedisBatchCommand : RedisCommand, IRedisBatchCommand
+    /*
+    AUTH password
+    summary: Authenticate to the server
+    since: 1.0.0
+
+    ECHO message
+    summary: Echo the given string
+    since: 1.0.0
+
+    PING [message]
+    summary: Ping the server
+    since: 1.0.0
+
+    QUIT -
+    summary: Close the connection
+    since: 1.0.0
+
+    SELECT index
+    summary: Change the selected database for the current connection
+    since: 1.0.0
+     */
+    public interface IRedisCommandsConnection
     {
-        #region Field Members
+        RedisBool Auth(RedisParam password);
 
-        private ConcurrentBag<RedisCommand> m_Siblings = new ConcurrentBag<RedisCommand>();
-
-        #endregion Field Members
-
-        #region .Ctors
-
-        public RedisBatchCommand(RedisParam command, params RedisParam[] args)
-            : base(command, args)
-        { }
-
-        protected internal RedisBatchCommand(int dbIndex, RedisParam command, params RedisParam[] args)
-            : base(dbIndex, command, args)
-        { }
-
-        protected internal RedisBatchCommand(int dbIndex, RedisParam command,
-            RedisCommandType commandType, params RedisParam[] args)
-            : base(dbIndex, command, commandType, args)
-        { }
-
-        protected internal RedisBatchCommand(RedisCommand command)
-            : base(command.DbIndex, command.Command, command.CommandType, command.Arguments)
-        { }
-
-        #endregion .Ctors
-
-        #region Properties
-
-        public ConcurrentBag<RedisCommand> Siblings 
-        { 
-            get { return m_Siblings; } 
-        }
-
-        #endregion Properties
+        RedisString Echo(RedisParam msg);
+        RedisBool Ping();
+        RedisString Ping(RedisParam msg);
+        RedisBool Quit();
     }
 }

@@ -26,7 +26,7 @@ using System;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisScriptingCommands : RedisCommandSet, IRedisScriptingCommands
+    internal class RedisScriptingCommands : RedisCommandSet, IRedisCommandsScripting
     {
         #region .Ctors
 

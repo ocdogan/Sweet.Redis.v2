@@ -27,7 +27,7 @@ using System.Collections.Generic;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisSentinelCommands : RedisCommandSet, IRedisSentinelCommands
+    internal class RedisSentinelCommands : RedisCommandSet, IRedisCommandsSentinel
     {
         #region .Ctors
 

@@ -24,23 +24,36 @@
 
 namespace Sweet.Redis.v2
 {
-    /*
-    PFADD key element [element ...]
-    summary: Adds the specified elements to the specified HyperLogLog.
-    since: 2.8.9
+    /* 
+	PSUBSCRIBE pattern [pattern ...]
+	summary: Listen for messages published to channels matching the given patterns
+	since: 2.0.0
 
-    PFCOUNT key [key ...]
-    summary: Return the approximated cardinality of the set(s) observed by the HyperLogLog at key(s).
-    since: 2.8.9
+	PUBLISH channel message
+	summary: Post a message to a channel
+	since: 2.0.0
 
-    PFMERGE destkey sourcekey [sourcekey ...]
-    summary: Merge N different HyperLogLogs into a single one.
-    since: 2.8.9
-     */
-    public interface IRedisHyperLogLogCommands
+	PUBSUB subcommand [argument [argument ...]]
+	summary: Inspect the state of the Pub/Sub subsystem
+	since: 2.8.0
+
+	PUNSUBSCRIBE [pattern [pattern ...]]
+	summary: Stop listening for messages posted to channels matching the given patterns
+	since: 2.0.0
+
+	SUBSCRIBE channel [channel ...]
+	summary: Listen for messages published to the given channels
+	since: 2.0.0
+
+	UNSUBSCRIBE [channel [channel ...]]
+	summary: Stop listening for messages posted to the given channels
+	since: 2.0.0
+	*/
+    public interface IRedisCommandsPubSub
     {
-        RedisBool PfAdd(RedisParam key, RedisParam element, params RedisParam[] elements);
-        RedisInteger PfCount(RedisParam key, params RedisParam[] keys);
-        RedisBool PfMerge(RedisParam destKey, RedisParam sourceKey, params RedisParam[] sourceKeys);
+        RedisInteger Publish(RedisParam channel, RedisParam message);
+        RedisMultiString PubSubChannels(RedisParam? pattern = null);
+        RedisResult<RedisKeyValue<string, long>[]> PubSubNumerOfSubscribers(params RedisParam[] channels);
+        RedisInteger PubSubNumerOfSubscriptionsToPatterns();
     }
 }

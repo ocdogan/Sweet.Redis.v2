@@ -53,7 +53,7 @@ namespace Sweet.Redis.v2
     summary: Load the specified Lua script into the script cache.
     since: 2.6.0
      */
-    public interface IRedisScriptingCommands
+    public interface IRedisCommandsScripting
     {
         RedisArray Eval(RedisParam script, params RedisKeyValue<RedisParam, RedisParam>[] args);
 

@@ -26,7 +26,7 @@ using System;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisHyperLogLogCommands : RedisCommandSet, IRedisHyperLogLogCommands
+    internal class RedisHyperLogLogCommands : RedisCommandSet, IRedisCommandsHyperLogLog
     {
         #region .Ctors
 

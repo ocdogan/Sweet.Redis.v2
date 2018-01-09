@@ -49,7 +49,7 @@ namespace Sweet.Redis.v2
     summary: Query a sorted set representing a geospatial index to fetch members matching a given maximum distance from a member
     since: 3.2.0
     */
-    public interface IRedisGeoCommands
+    public interface IRedisCommandsGeo
     {
         RedisInteger GeoAdd(RedisParam key, RedisGeospatialItem member, params RedisGeospatialItem[] members);
         RedisNullableDouble GeoDistance(RedisParam key, RedisParam member1, RedisParam member2, RedisGeoDistanceUnit unit = RedisGeoDistanceUnit.Default);

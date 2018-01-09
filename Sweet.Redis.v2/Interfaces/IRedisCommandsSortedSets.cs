@@ -109,7 +109,7 @@ namespace Sweet.Redis.v2
     summary: Add multiple sorted sets and store the resulting sorted set in a new key
     since: 2.0.0
     */
-    public interface IRedisSortedSetsCommands
+    public interface IRedisCommandsSortedSets
     {
         RedisDouble ZAdd(RedisParam key, int score, RedisParam member, RedisUpdateOption updateOption = RedisUpdateOption.Default,
                     bool changed = false, bool increment = false, params RedisKeyValue<int, RedisParam>[] scoresAndMembers);

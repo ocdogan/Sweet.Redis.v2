@@ -53,7 +53,7 @@ namespace Sweet.Redis.v2
             * The second element of the reply is the subjective leader for this master, that is, the runid of the Redis Sentinel instance that should perform 
             * the failover accordingly to the queried instance.
     */
-    public interface IRedisSentinelCommands
+    public interface IRedisCommandsSentinel
     {
         RedisBool Ping();
         RedisString CheckQuorum(string masterName);

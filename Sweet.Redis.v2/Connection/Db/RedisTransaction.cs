@@ -139,7 +139,7 @@ namespace Sweet.Redis.v2
                 var requests = batchRequests.Select(br => new RedisAsyncRequest(br.Request.Command, RedisCommandExpect.OK)).ToList();
 
                 // MULTI command
-                requests.Insert(0, new RedisAsyncRequest(new RedisBatchCommand(new RedisCommand(DbIndex, RedisCommandList.Multi)), RedisCommandExpect.OK));
+                requests.Insert(0, new RedisAsyncRequest(new RedisCommand(DbIndex, RedisCommandList.Multi), RedisCommandExpect.OK));
                 Process(requests.ToArray());
             }
             catch (Exception e)

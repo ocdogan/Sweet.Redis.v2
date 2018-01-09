@@ -151,7 +151,7 @@ namespace Sweet.Redis.v2
     summary: Return the current server time
     since: 2.6.0
      */
-    public interface IRedisServerCommands
+    public interface IRedisCommandsServer
     {
         RedisBool BGRewriteAOF();
         RedisBool BGSave();

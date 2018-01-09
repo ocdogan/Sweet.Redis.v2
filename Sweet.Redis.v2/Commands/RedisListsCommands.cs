@@ -27,7 +27,7 @@ using System.Text;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisListsCommands : RedisCommandSet, IRedisListsCommands
+    internal class RedisListsCommands : RedisCommandSet, IRedisCommandsLists
     {
         #region .Ctors
 

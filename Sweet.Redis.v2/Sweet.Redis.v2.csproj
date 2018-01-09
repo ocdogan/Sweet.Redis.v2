@@ -83,8 +83,6 @@
     <Compile Include="Connection\PubSub\RedisPubSubSocket.cs" />
     <Compile Include="Connection\Settings\RedisManagerSettings.cs" />
     <Compile Include="Connection\Settings\RedisSentinelSettings.cs" />
-    <Compile Include="Interfaces\IRedisBatchCommand.cs" />
-    <Compile Include="Common\Command\RedisBatchCommand.cs" />
     <Compile Include="Common\Command\RedisCommand.cs" />
     <Compile Include="Common\Command\RedisCommandExpect.cs" />
     <Compile Include="Common\Command\RedisCommandList.cs" />
@@ -143,7 +141,7 @@
     <Compile Include="Interfaces\IRedisCommandSet.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IRedisConnectionCommands.cs" />
+    <Compile Include="Interfaces\IRedisCommandsConnection.cs" />
     <Compile Include="Interfaces\IRedisConnectionInfoProvider.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -156,17 +154,17 @@
     <Compile Include="Interfaces\IRedisDisposableBase.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IRedisGeoCommands.cs" />
-    <Compile Include="Interfaces\IRedisHashesCommands.cs" />
+    <Compile Include="Interfaces\IRedisCommandsGeo.cs" />
+    <Compile Include="Interfaces\IRedisCommandsHashes.cs" />
     <Compile Include="Interfaces\IRedisHeartBeatProbe.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IRedisHyperLogLogCommands.cs" />
+    <Compile Include="Interfaces\IRedisCommandsHyperLogLog.cs" />
     <Compile Include="Interfaces\IRedisIdentifiedObject.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IRedisKeysCommands.cs" />
-    <Compile Include="Interfaces\IRedisListsCommands.cs" />
+    <Compile Include="Interfaces\IRedisCommandsKeys.cs" />
+    <Compile Include="Interfaces\IRedisCommandsLists.cs" />
     <Compile Include="Interfaces\IRedisManager.cs" />
     <Compile Include="Interfaces\IRedisMonitorChannel.cs">
       <SubType>Code</SubType>
@@ -179,19 +177,19 @@
     <Compile Include="Interfaces\IRedisPubSubChannel.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IRedisPubSubCommands.cs" />
+    <Compile Include="Interfaces\IRedisCommandsPubSub.cs" />
     <Compile Include="Interfaces\IRedisReceiver.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IRedisScriptingCommands.cs" />
+    <Compile Include="Interfaces\IRedisCommandsScripting.cs" />
     <Compile Include="Interfaces\IRedisSentinelClient.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Interfaces\IRedisSentinelCommands.cs" />
-    <Compile Include="Interfaces\IRedisServerCommands.cs" />
-    <Compile Include="Interfaces\IRedisSetsCommands.cs" />
-    <Compile Include="Interfaces\IRedisSortedSetsCommands.cs" />
-    <Compile Include="Interfaces\IRedisStringsCommands.cs" />
+    <Compile Include="Interfaces\IRedisCommandsSentinel.cs" />
+    <Compile Include="Interfaces\IRedisCommandsServer.cs" />
+    <Compile Include="Interfaces\IRedisCommandsSets.cs" />
+    <Compile Include="Interfaces\IRedisCommandsSortedSets.cs" />
+    <Compile Include="Interfaces\IRedisCommandsStrings.cs" />
     <Compile Include="Interfaces\IRedisTransaction.cs" />
     <Compile Include="Common\RedisAggregate.cs" />
     <Compile Include="Common\RedisAsyncEx.cs" />

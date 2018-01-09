@@ -32,17 +32,17 @@ namespace Sweet.Redis.v2
     {
         #region Field Members
 
-        private IRedisConnectionCommands m_Connection;
-        private IRedisGeoCommands m_Geo;
-        private IRedisHashesCommands m_Hashes;
-        private IRedisHyperLogLogCommands m_HyperLogLogCommands;
-        private IRedisKeysCommands m_Keys;
-        private IRedisListsCommands m_Lists;
-        private IRedisPubSubCommands m_PubSubs;
-        private IRedisScriptingCommands m_Scripting;
-        private IRedisSetsCommands m_Sets;
-        private IRedisSortedSetsCommands m_SortedSets;
-        private IRedisStringsCommands m_Strings;
+        private IRedisCommandsConnection m_Connection;
+        private IRedisCommandsGeo m_Geo;
+        private IRedisCommandsHashes m_Hashes;
+        private IRedisCommandsHyperLogLog m_HyperLogLogCommands;
+        private IRedisCommandsKeys m_Keys;
+        private IRedisCommandsLists m_Lists;
+        private IRedisCommandsPubSub m_PubSubs;
+        private IRedisCommandsScripting m_Scripting;
+        private IRedisCommandsSets m_Sets;
+        private IRedisCommandsSortedSets m_SortedSets;
+        private IRedisCommandsStrings m_Strings;
 
         #endregion Field Members
 
@@ -56,7 +56,7 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public IRedisConnectionCommands Connection
+        public IRedisCommandsConnection Connection
         {
             get
             {
@@ -67,7 +67,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisGeoCommands Geo
+        public IRedisCommandsGeo Geo
         {
             get
             {
@@ -78,7 +78,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisHashesCommands Hashes
+        public IRedisCommandsHashes Hashes
         {
             get
             {
@@ -89,7 +89,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisHyperLogLogCommands HyperLogLogCommands
+        public IRedisCommandsHyperLogLog HyperLogLogCommands
         {
             get
             {
@@ -100,7 +100,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisKeysCommands Keys
+        public IRedisCommandsKeys Keys
         {
             get
             {
@@ -111,7 +111,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisListsCommands Lists
+        public IRedisCommandsLists Lists
         {
             get
             {
@@ -122,7 +122,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisPubSubCommands PubSubs
+        public IRedisCommandsPubSub PubSubs
         {
             get
             {
@@ -133,7 +133,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisScriptingCommands Scripting
+        public IRedisCommandsScripting Scripting
         {
             get
             {
@@ -144,7 +144,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisSetsCommands Sets
+        public IRedisCommandsSets Sets
         {
             get
             {
@@ -155,7 +155,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisSortedSetsCommands SortedSets
+        public IRedisCommandsSortedSets SortedSets
         {
             get
             {
@@ -166,7 +166,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public IRedisStringsCommands Strings
+        public IRedisCommandsStrings Strings
         {
             get
             {

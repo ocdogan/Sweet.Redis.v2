@@ -26,16 +26,16 @@ namespace Sweet.Redis.v2
 {
     public interface IRedisDb : IRedisClient, IRedisDisposable
     {
-        IRedisConnectionCommands Connection { get; }
-        IRedisGeoCommands Geo { get; }
-        IRedisHashesCommands Hashes { get; }
-        IRedisHyperLogLogCommands HyperLogLogCommands { get; }
-        IRedisKeysCommands Keys { get; }
-        IRedisListsCommands Lists { get; }
-        IRedisPubSubCommands PubSubs { get; }
-        IRedisScriptingCommands Scripting { get; }
-        IRedisSetsCommands Sets { get; }
-        IRedisSortedSetsCommands SortedSets { get; }
-        IRedisStringsCommands Strings { get; }
+        IRedisCommandsConnection Connection { get; }
+        IRedisCommandsGeo Geo { get; }
+        IRedisCommandsHashes Hashes { get; }
+        IRedisCommandsHyperLogLog HyperLogLogCommands { get; }
+        IRedisCommandsKeys Keys { get; }
+        IRedisCommandsLists Lists { get; }
+        IRedisCommandsPubSub PubSubs { get; }
+        IRedisCommandsScripting Scripting { get; }
+        IRedisCommandsSets Sets { get; }
+        IRedisCommandsSortedSets SortedSets { get; }
+        IRedisCommandsStrings Strings { get; }
     }
 }

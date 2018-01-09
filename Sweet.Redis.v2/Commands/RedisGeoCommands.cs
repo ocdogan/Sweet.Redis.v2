@@ -27,7 +27,7 @@ using System.Collections.Generic;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisGeoCommands : RedisCommandSet, IRedisGeoCommands
+    internal class RedisGeoCommands : RedisCommandSet, IRedisCommandsGeo
     {
         #region .Ctors
 

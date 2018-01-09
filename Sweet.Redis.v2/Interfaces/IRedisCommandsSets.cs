@@ -85,7 +85,7 @@ namespace Sweet.Redis.v2
     summary: Add multiple sets and store the resulting set in a key
     since: 1.0.0
      */
-    public interface IRedisSetsCommands
+    public interface IRedisCommandsSets
     {
         RedisInteger SAdd(RedisParam key, RedisParam member, params RedisParam[] members);
 

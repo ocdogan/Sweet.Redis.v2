@@ -32,7 +32,7 @@ namespace Sweet.Redis.v2
         #region Field Members
 
         private RedisAsyncClient m_Client;
-        private IRedisSentinelCommands m_Commands;
+        private IRedisCommandsSentinel m_Commands;
         private RedisAsyncCommandExecuter m_Executer;
 
         private bool m_ThrowOnError;
@@ -79,7 +79,7 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public IRedisSentinelCommands Commands
+        public IRedisCommandsSentinel Commands
         {
             get
             {

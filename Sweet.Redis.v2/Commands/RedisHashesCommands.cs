@@ -28,7 +28,7 @@ using System.Collections.Generic;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisHashesCommands : RedisCommandSet, IRedisHashesCommands
+    internal class RedisHashesCommands : RedisCommandSet, IRedisCommandsHashes
     {
         #region .Ctors
 

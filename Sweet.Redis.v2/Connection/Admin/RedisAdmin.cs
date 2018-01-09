@@ -28,7 +28,7 @@ namespace Sweet.Redis.v2
     {
         #region Field Members
 
-        private IRedisServerCommands m_Commands;
+        private IRedisCommandsServer m_Commands;
 
         #endregion Field Members
 
@@ -42,7 +42,7 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public IRedisServerCommands Commands
+        public IRedisCommandsServer Commands
         {
             get
             {

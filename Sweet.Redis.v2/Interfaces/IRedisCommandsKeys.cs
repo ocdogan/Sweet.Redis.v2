@@ -121,7 +121,7 @@ namespace Sweet.Redis.v2
     summary: Wait for the synchronous replication of all the write commands sent in the context of the current connection
     since: 3.0.0
      */
-    public interface IRedisKeysCommands
+    public interface IRedisCommandsKeys
     {
         RedisInteger Del(RedisParam key, params RedisParam[] keys);
 

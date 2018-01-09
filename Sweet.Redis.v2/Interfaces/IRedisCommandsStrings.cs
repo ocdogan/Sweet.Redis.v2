@@ -121,7 +121,7 @@ namespace Sweet.Redis.v2
     summary: Get the length of the value stored in a key
     since: 2.2.0
      */
-    public interface IRedisStringsCommands
+    public interface IRedisCommandsStrings
     {
         RedisInteger Append(RedisParam key, RedisParam value);
 

@@ -88,7 +88,7 @@ namespace Sweet.Redis.v2
     summary: Get all the values in a hash
     since: 2.0.0
      */
-    public interface IRedisHashesCommands
+    public interface IRedisCommandsHashes
     {
         RedisInteger HDel(RedisParam key, RedisParam field, params RedisParam[] fields);
 

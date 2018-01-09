@@ -93,7 +93,7 @@ namespace Sweet.Redis.v2
     summary: Append a value to a list, only if the list exists
     since: 2.2.0
      */
-    public interface IRedisListsCommands
+    public interface IRedisCommandsLists
     {
         RedisMultiBytes BLPop(RedisParam key, int timeout);
         RedisMultiString BLPopString(RedisParam key, int timeout);

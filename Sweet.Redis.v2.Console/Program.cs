@@ -22,7 +22,7 @@ namespace Sweet.Redis.v2
 
         #endregion TestResult
 
-        private const int RedisPort = 6379; // 6380
+        private const int RedisPort = 6380;
         private const string RedisHost = "127.0.0.1"; // "172.28.10.234"
 
         static void Main(string[] args)
