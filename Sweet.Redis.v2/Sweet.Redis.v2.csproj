@@ -278,6 +278,7 @@
     <Compile Include="Interfaces\IRedisServer.cs" />
     <Compile Include="Connection\Manager\RedisManagedEndPointResolver.cs" />
     <Compile Include="Connection\Common\RedisEndPointRsolver.cs" />
+    <Compile Include="Interfaces\IRedisCommandsCluster.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="License.md" />
