@@ -202,22 +202,31 @@ namespace Sweet.Redis.v2
             if (!(ReferenceEquals(seed, null) || seed is RedisManagedSentinelListener))
                 throw new RedisException("Invalid seed type");
 
-            var sentinel = (RedisManagedSentinelListener)seed;
-
-            var oldSentinel = (RedisManagedSentinelListener)Interlocked.Exchange(ref m_Seed, sentinel);
-            if (oldSentinel != null)
+            try
             {
-                oldSentinel.SetOnPulseStateChange(null);
-                oldSentinel.Dispose();
+                var sentinel = (RedisManagedSentinelListener)seed;
+
+                var oldSentinel = (RedisManagedSentinelListener)Interlocked.Exchange(ref m_Seed, sentinel);
+                if (oldSentinel != null)
+                {
+                    oldSentinel.SetOnPulseStateChange(null);
+                    oldSentinel.Dispose();
+                }
+
+                if (!Disposed)
+                    m_EndPoint = GetEndPoint(sentinel);
+
+                if (sentinel.IsAlive())
+                    sentinel.SetOnPulseStateChange(m_OnPulseStateChange);
+
+                return oldSentinel;
             }
-
-            if (!Disposed)
-                m_EndPoint = GetEndPoint(sentinel);
-
-            if (sentinel.IsAlive())
-                sentinel.SetOnPulseStateChange(m_OnPulseStateChange);
-
-            return oldSentinel;
+            finally
+            {
+                if (!ReferenceEquals(seed, null))
+                    AttachToCardio();
+                else DetachFromCardio();
+            }
         }
 
         public override bool Ping()

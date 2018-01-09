@@ -30,7 +30,7 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisEndPointResolver : RedisInternalDisposable, IRedisNamedObject
+    internal class RedisEndPointResolver : RedisDisposable, IRedisNamedObject
     {
         #region NodeRoleAndSiblings
 

@@ -32,7 +32,7 @@ namespace Sweet.Redis.v2
         #region Field Members
 
         private int m_PulseState;
-        private bool m_ProbeAttached;
+        private int m_ProbeAttached;
         private int m_PulseFailCount;
 
         protected object m_Seed;
@@ -45,6 +45,8 @@ namespace Sweet.Redis.v2
 
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
 
+        private long m_Id = RedisIDGenerator<RedisManagedNode>.NextId();
+
         #endregion Field Members
 
         #region .Ctors
@@ -52,18 +54,26 @@ namespace Sweet.Redis.v2
         protected RedisManagedNode(RedisManagerSettings settings, RedisRole role, object seed,
                                 Action<object, RedisCardioPulseStatus> onPulseStateChange, bool ownsSeed = true)
         {
-            m_Seed = seed;
             m_Role = role;
             m_OwnsSeed = ownsSeed;
             m_EndPoint = RedisEndPoint.Empty;
 
             m_Settings = settings;
             m_OnPulseStateChange = onPulseStateChange;
+
+            ExchangeSeedInternal(seed);
+            AttachToCardio();
         }
 
         #endregion .Ctors
 
         #region Destructors
+
+        protected override void OnBeforeDispose(bool disposing, bool alreadyDisposed)
+        {
+            DetachFromCardio();
+            base.OnBeforeDispose(disposing, alreadyDisposed);
+        }
 
         protected override void OnDispose(bool disposing)
         {
@@ -73,6 +83,7 @@ namespace Sweet.Redis.v2
             base.OnDispose(disposing);
 
             var seed = ExchangeSeedInternal(null);
+
             if (m_OwnsSeed && !ReferenceEquals(seed, null))
             {
                 var disposable = seed as IDisposable;
@@ -107,6 +118,8 @@ namespace Sweet.Redis.v2
         }
 
         public RedisEndPoint EndPoint { get { return m_EndPoint; } }
+
+        public long Id { get { return m_Id; } }
 
         public virtual bool IsClosed
         {
@@ -222,6 +235,10 @@ namespace Sweet.Redis.v2
 
         protected virtual object ExchangeSeedInternal(object seed)
         {
+            if (!ReferenceEquals(seed, null))
+                AttachToCardio();
+            else DetachFromCardio();
+
             return Interlocked.Exchange(ref m_Seed, seed);
         }
 
@@ -244,28 +261,26 @@ namespace Sweet.Redis.v2
 
         #region Pulse
 
-        internal void AttachToCardio()
+        protected void AttachToCardio()
         {
-            if (!Disposed && !m_ProbeAttached)
+            if (!Disposed)
             {
                 var settings = Settings;
-                if (settings != null && settings.HeartBeatEnabled)
-                {
-                    m_ProbeAttached = true;
+                if (settings != null && settings.HeartBeatEnabled &&
+                    Interlocked.CompareExchange(ref m_ProbeAttached, 1, 0) == 0)
                     RedisCardio.Default.Attach(this, settings.HearBeatIntervalInSecs);
-                }
             }
         }
 
-        internal void DetachFromCardio()
+        protected void DetachFromCardio()
         {
-            if (m_ProbeAttached && !Disposed)
+            if (Interlocked.CompareExchange(ref m_ProbeAttached, 0, 1) == 1)
                 RedisCardio.Default.Detach(this);
         }
 
         RedisHeartBeatPulseResult IRedisHeartBeatProbe.Pulse()
         {
-            if (!Disposed && Interlocked.CompareExchange(ref m_PulseState, 1, 0) == 0)
+            if (!Disposed && m_PulseState != 0)
             {
                 var success = false;
                 try

@@ -32,7 +32,7 @@ namespace Sweet.Redis.v2
         #region Field Members
 
         private int m_PulseState;
-        private bool m_ProbeAttached;
+        private int m_ProbeAttached;
         private int m_PulseFailCount;
 
         private IRedisPingable m_Client;
@@ -109,26 +109,24 @@ namespace Sweet.Redis.v2
 
         public void AttachToCardio()
         {
-            if (!Disposed && !m_ProbeAttached)
+            if (!Disposed)
             {
                 var settings = m_Settings;
-                if (settings != null && settings.HeartBeatEnabled)
-                {
-                    m_ProbeAttached = true;
+                if (settings != null && settings.HeartBeatEnabled &&
+                    Interlocked.CompareExchange(ref m_ProbeAttached, 1, 0) == 0)
                     RedisCardio.Default.Attach(this, settings.HearBeatIntervalInSecs);
-                }
             }
         }
 
         public void DetachFromCardio()
         {
-            if (m_ProbeAttached && !Disposed)
+            if (Interlocked.CompareExchange(ref m_ProbeAttached, 0, 1) == 1)
                 RedisCardio.Default.Detach(this);
         }
 
         RedisHeartBeatPulseResult IRedisHeartBeatProbe.Pulse()
         {
-            if (!Disposed && Interlocked.CompareExchange(ref m_PulseState, 1, 0) == 0)
+            if (!Disposed && m_PulseState != 0)
             {
                 var success = false;
                 try

@@ -73,7 +73,7 @@ namespace Sweet.Redis.v2
 
         private RedisRole m_ServerRole;
 
-        private long m_Id = RedisIDGenerator<RedisAsyncClient>.NextId();
+        protected long m_Id = RedisIDGenerator<RedisAsyncClient>.NextId();
 
         #endregion Field Members
 
@@ -187,7 +187,7 @@ namespace Sweet.Redis.v2
             get { return RedisRole.Undefined; }
         }
 
-        public long Id
+        public virtual long Id
         {
             get { return m_Id; }
         }

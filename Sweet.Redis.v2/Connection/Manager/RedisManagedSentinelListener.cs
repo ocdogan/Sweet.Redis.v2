@@ -43,7 +43,6 @@ namespace Sweet.Redis.v2
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
 
         private bool m_ThrowOnError;
-        private long m_Id = RedisIDGenerator<RedisSentinelClient>.NextId();
 
         #endregion Field Members
 
@@ -56,11 +55,12 @@ namespace Sweet.Redis.v2
             if (client == null)
                 throw new RedisFatalException(new ArgumentNullException("client"), RedisErrorCode.MissingParameter);
 
+            m_OnPulseStateChange = onPulseStateChange;
+
             settings = settings ?? client.Settings;
 
             m_Client = client.Disposed ? new RedisAsyncClient(settings) : client;
-            m_ThrowOnError = settings.ThrowOnError;
-            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
+            Init(settings, m_Client);
         }
 
         public RedisManagedSentinelListener(RedisConnectionSettings settings,
@@ -69,11 +69,16 @@ namespace Sweet.Redis.v2
         {
             m_OnPulseStateChange = onPulseStateChange;
 
-            m_ThrowOnError = settings.ThrowOnError;
             m_Client = new RedisAsyncClient(settings);
-            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
-            
-            if (settings.HeartBeatEnabled)
+            Init(settings, m_Client);
+        }
+
+        private void Init(RedisConnectionSettings settings, RedisAsyncClient client)
+        {
+            m_ThrowOnError = settings.ThrowOnError;
+            m_Executer = new RedisAsyncCommandExecuter(client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
+
+            if (IsHeartBeatEnabled(settings))
             {
                 m_HeartBeatProbe = new RedisHeartBeatProbe(settings, this, null);
                 m_HeartBeatProbe.SetOnPulseStateChange(OnPulseStateChange);
@@ -85,6 +90,11 @@ namespace Sweet.Redis.v2
         #endregion .Ctors
 
         #region Destructors
+
+        protected virtual bool IsHeartBeatEnabled(RedisConnectionSettings settings)
+        {
+            return false;
+        }
 
         protected override void OnDispose(bool disposing)
         {

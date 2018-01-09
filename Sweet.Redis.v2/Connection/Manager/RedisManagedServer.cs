@@ -159,6 +159,11 @@ namespace Sweet.Redis.v2
 
         #region Methods
 
+        protected override bool IsHeartBeatEnabled(RedisConnectionSettings settings)
+        {
+            return false;
+        }
+
         protected internal void SetOnPulseStateChange(Action<object, RedisCardioPulseStatus> onPulseStateChange)
         {
             Interlocked.Exchange(ref m_OnPulseStateChange, onPulseStateChange);

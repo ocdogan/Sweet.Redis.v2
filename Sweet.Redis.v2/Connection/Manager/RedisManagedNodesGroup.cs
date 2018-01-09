@@ -40,6 +40,8 @@ namespace Sweet.Redis.v2
         private RedisManagedNode[] m_Nodes;
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
 
+        private long m_Id = RedisIDGenerator<RedisManagedNodesGroup>.NextId();
+
         #endregion Field Members
 
         #region .Ctors
@@ -79,6 +81,8 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
+        public long Id { get { return m_Id; } }
+
         public RedisManagedNode[] Nodes { get { return m_Nodes; } }
 
         public RedisRole Role { get; internal set; }
@@ -101,13 +105,13 @@ namespace Sweet.Redis.v2
                 onPulseStateChange(sender, status);
         }
 
-        public virtual RedisManagedNode[] ExchangeNodes(RedisManagedNode[] nodes)
+        public RedisManagedNode[] ExchangeNodes(RedisManagedNode[] nodes)
         {
             ValidateNotDisposed();
             return ExchangeNodesInternal(nodes);
         }
 
-        private RedisManagedNode[] ExchangeNodesInternal(RedisManagedNode[] nodes)
+        protected virtual RedisManagedNode[] ExchangeNodesInternal(RedisManagedNode[] nodes)
         {
             lock (m_SyncRoot)
             {
@@ -136,7 +140,7 @@ namespace Sweet.Redis.v2
         {
             Interlocked.Exchange(ref m_NodeIndex, -1);
 
-            var nodes = Interlocked.Exchange(ref m_Nodes, new RedisManagedNode[0]);
+            var nodes = ExchangeNodesInternal(new RedisManagedNode[0]);
             if (nodes != null)
             {
                 lock (m_SyncRoot)
@@ -291,34 +295,6 @@ namespace Sweet.Redis.v2
                 }
             }
             return false;
-        }
-
-        public void AttachToCardio()
-        {
-            if (!Disposed && Settings.HeartBeatEnabled)
-            {
-                var nodes = m_Nodes;
-                if (nodes != null)
-                {
-                    foreach (var node in nodes)
-                        if (node.IsAlive())
-                            node.AttachToCardio();
-                }
-            }
-        }
-
-        public void DetachFromCardio()
-        {
-            if (!Disposed)
-            {
-                var nodes = m_Nodes;
-                if (nodes != null)
-                {
-                    foreach (var node in nodes)
-                        if (node.IsAlive())
-                            node.DetachFromCardio();
-                }
-            }
         }
 
         public RedisConnectionSettings FindValidSettings()

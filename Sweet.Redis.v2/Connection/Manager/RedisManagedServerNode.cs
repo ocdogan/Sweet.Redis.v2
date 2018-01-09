@@ -34,6 +34,7 @@ namespace Sweet.Redis.v2
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
 
         #endregion Field Members
+        
         #region .Ctors
 
         public RedisManagedServerNode(RedisManagerSettings settings, RedisRole role, RedisManagedServer server,
@@ -170,22 +171,31 @@ namespace Sweet.Redis.v2
             if (!(ReferenceEquals(seed, null) || seed is RedisManagedServer))
                 throw new RedisException("Invalid seed type");
 
-            var server = (RedisManagedServer)seed;
-
-            var oldServer = (RedisManagedServer)Interlocked.Exchange(ref m_Seed, server);
-            if (oldServer != null)
-                oldServer.SetOnPulseStateChange(null);
-
-            if (!Disposed)
-                m_EndPoint = server.IsAlive() ? server.EndPoint : RedisEndPoint.Empty;
-
-            if (server.IsAlive())
+            try
             {
-                server.Role = m_Role;
-                server.SetOnPulseStateChange(m_OnPulseStateChange);
-            }
+                var server = (RedisManagedServer)seed;
 
-            return oldServer;
+                var oldServer = (RedisManagedServer)Interlocked.Exchange(ref m_Seed, server);
+                if (oldServer != null)
+                    oldServer.SetOnPulseStateChange(null);
+
+                if (!Disposed)
+                    m_EndPoint = server.IsAlive() ? server.EndPoint : RedisEndPoint.Empty;
+
+                if (server.IsAlive())
+                {
+                    server.Role = m_Role;
+                    server.SetOnPulseStateChange(m_OnPulseStateChange);
+                }
+
+                return oldServer;
+            }
+            finally
+            {
+                if (!ReferenceEquals(seed, null))
+                    AttachToCardio();
+                else DetachFromCardio();
+            }
         }
 
         public override bool Ping()

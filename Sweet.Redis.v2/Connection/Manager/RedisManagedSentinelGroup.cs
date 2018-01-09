@@ -113,9 +113,25 @@ namespace Sweet.Redis.v2
 
         #region Methods
 
-        public override RedisManagedNode[] ExchangeNodes(RedisManagedNode[] nodes)
+        protected override RedisManagedNode[] ExchangeNodesInternal(RedisManagedNode[] nodes)
         {
-            return base.ExchangeNodes((RedisManagedSentinelNode[])nodes);
+            var oldNodes = base.ExchangeNodesInternal(nodes);
+            if (oldNodes != null)
+            {
+                var monitoredSentinels = m_MonitoredSentinels;
+                
+                foreach (var oldNode in oldNodes)
+                {
+                    if (oldNode != null)
+                    {
+                        var listener = (RedisManagedSentinelListener)oldNode.Seed;
+                        if (listener != null)
+                            monitoredSentinels.Remove(listener);
+                    }
+                }
+            }
+
+            return oldNodes;
         }
 
         public void RegisterToMessageEvents(Action<RedisSentinelMessage> onSentinelMessage)
@@ -195,13 +211,13 @@ namespace Sweet.Redis.v2
             {
                 try
                 {
-                    var channel = node.Listener;
-                    if (channel.IsAlive())
+                    var listener = node.Listener;
+                    if (listener.IsAlive())
                     {
-                        if (!channel.Ping())
+                        if (!listener.Ping())
                             return false;
 
-                        channel.Subscribe(PubSubMessageReceived,
+                        listener.Subscribe(PubSubMessageReceived,
                                 RedisCommandList.SentinelChanelSDownEntered,
                                 RedisCommandList.SentinelChanelSDownExited,
                                 RedisCommandList.SentinelChanelODownEntered,
@@ -209,19 +225,8 @@ namespace Sweet.Redis.v2
                                 RedisCommandList.SentinelChanelSwitchMaster,
                                 RedisCommandList.SentinelChanelSentinel);
 
-                        monitoredSentinels.Add(channel);
+                        monitoredSentinels.Add(listener);
 
-                        // TODO: Remove sentinel from list when listening end
-                        /* channel.SetOnComplete((obj) =>
-                        {
-                            Interlocked.Exchange(ref m_MonitoringStatus, RedisConstants.Zero);
-                            monitoredSentinels.Remove(channel);
-
-                            channel.Ping();
-
-                            if (onComplete != null)
-                                onComplete(node);
-                        }); */
                         return true;
                     }
                 }

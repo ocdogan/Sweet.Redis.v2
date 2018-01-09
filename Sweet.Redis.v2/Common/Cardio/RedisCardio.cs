@@ -49,6 +49,8 @@ namespace Sweet.Redis.v2
             private IRedisHeartBeatProbe m_Probe;
             private Func<object, RedisCardioPulseStatus, bool> m_OnSetStatus;
 
+            private long m_Id = RedisIDGenerator<CardioProbe>.NextId();
+
             #endregion Field Members
 
             #region .Ctors
@@ -83,6 +85,8 @@ namespace Sweet.Redis.v2
                 get { return m_FailCount; }
             }
 
+            public long Id { get { return m_Id; } }
+
             public int IntervalInSecs { get; private set; }
 
             public IRedisHeartBeatProbe Probe { get { return m_Probe; } }
@@ -113,6 +117,12 @@ namespace Sweet.Redis.v2
             #endregion Properties
 
             #region Methods
+
+            public override string ToString()
+            {
+                return String.Format("[Id: {0}, IntervalInSecs: {1}, Pulsing: {2}, Status: {3}, SuccessCount: {4}, FailCount: {5}, Probe: {6}]",
+                    m_Id, IntervalInSecs, Pulsing, m_Status, m_SuccessCount, m_FailCount, m_Probe);
+            }
 
             private void SetCounters(RedisCardioProbeStatus status)
             {
@@ -392,8 +402,8 @@ namespace Sweet.Redis.v2
                         {
                             try
                             {
-                                if (probes.Remove(cp))
-                                    cp.Dispose();
+                                probes.Remove(cp);
+                                cp.Dispose();
                             }
                             finally
                             {

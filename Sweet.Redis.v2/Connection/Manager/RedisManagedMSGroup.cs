@@ -40,6 +40,8 @@ namespace Sweet.Redis.v2
         private RedisManagerSettings m_Settings;
         private bool m_UseSlaveAsMasterWhenNeeded;
 
+        private long m_Id = RedisIDGenerator<RedisManagedMSGroup>.NextId();
+        
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
 
         #endregion Field Members
@@ -79,6 +81,8 @@ namespace Sweet.Redis.v2
         #endregion Destructors
 
         #region Properties
+
+        public long Id { get { return m_Id; } }
 
         public RedisManagedServerGroup Masters { get { return m_Masters; } }
 

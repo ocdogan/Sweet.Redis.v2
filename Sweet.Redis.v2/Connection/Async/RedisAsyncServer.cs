@@ -49,6 +49,8 @@ namespace Sweet.Redis.v2
 
         private RedisHeartBeatProbe m_HeartBeatProbe;
 
+        private long m_Id = RedisIDGenerator<RedisAsyncServer>.NextId();
+        
         #endregion Field Members
 
         #region .Ctors
@@ -79,7 +81,7 @@ namespace Sweet.Redis.v2
             m_ClientCount = settings.ConnectionCount;
             m_Clients = new RedisAsyncClient[m_ClientCount];
 
-            if (settings.HeartBeatEnabled)
+            if (IsHeartBeatEnabled(settings))
             {
                 m_HeartBeatProbe = new RedisHeartBeatProbe(settings, this, null);
                 m_HeartBeatProbe.SetOnPulseStateChange(OnPulseStateChange);
@@ -91,6 +93,11 @@ namespace Sweet.Redis.v2
         #endregion .Ctors
 
         #region Destructors
+
+        protected virtual bool IsHeartBeatEnabled(RedisConnectionSettings settings)
+        {
+            return settings != null && settings.HeartBeatEnabled;
+        }
 
         protected override void OnDispose(bool disposing)
         {
@@ -124,6 +131,8 @@ namespace Sweet.Redis.v2
         #endregion Destructors
 
         #region Properties
+
+        public long Id { get { return m_Id; } }
 
         public virtual bool IsDown
         {

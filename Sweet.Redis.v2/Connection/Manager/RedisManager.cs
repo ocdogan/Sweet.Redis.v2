@@ -93,22 +93,20 @@ namespace Sweet.Redis.v2
             base.OnDispose(disposing);
 
             var helloChannel = Interlocked.Exchange(ref m_SentinelHelloChannel, null);
-            if (helloChannel != null)
-                helloChannel.Dispose();
 
-            var eventQ = Interlocked.Exchange(ref m_EventQ, null);
-            if (eventQ != null)
-                eventQ.Dispose();
+            var oldMSGroup = Interlocked.Exchange(ref m_MSGroup, null);
+            var oldSentinels = Interlocked.Exchange(ref m_Sentinels, null);
 
-            var endPointResolver = Interlocked.Exchange(ref m_EndPointResolver, null);
-            if (endPointResolver != null)
-                endPointResolver.Dispose();
+            using (Interlocked.Exchange(ref m_EventQ, null)) { }
+            using (Interlocked.Exchange(ref m_EndPointResolver, null)) { }
 
             Interlocked.Exchange(ref m_InitializationState, (long)InitializationState.Undefined);
 
-            var msGroup = Interlocked.Exchange(ref m_MSGroup, null);
-            if (msGroup != null)
-                msGroup.Dispose();
+            using (oldMSGroup) { }
+            using (oldSentinels) { }
+
+            if (helloChannel != null)
+                helloChannel.Dispose();
         }
 
         #endregion Destructors
@@ -573,43 +571,20 @@ namespace Sweet.Redis.v2
                                     {
                                         oldMSGroup.SetOnPulseStateChange(null);
                                         objectsToDispose.Add(oldMSGroup);
-
-                                        var nodesGroup = oldMSGroup.Masters;
-                                        if (nodesGroup.IsAlive())
-                                            nodesGroup.DetachFromCardio();
-
-                                        nodesGroup = oldMSGroup.Slaves;
-                                        if (nodesGroup.IsAlive())
-                                            nodesGroup.DetachFromCardio();
                                     }
 
                                     if (msGroup.IsAlive())
-                                    {
                                         msGroup.SetOnPulseStateChange(OnProbeStateChange);
-
-                                        var nodesGroup = msGroup.Masters;
-                                        if (nodesGroup.IsAlive())
-                                            nodesGroup.AttachToCardio();
-
-                                        nodesGroup = msGroup.Slaves;
-                                        if (nodesGroup.IsAlive())
-                                            nodesGroup.AttachToCardio();
-                                    }
 
                                     var oldSentinels = Interlocked.Exchange(ref m_Sentinels, sentinels);
                                     if (oldSentinels.IsAlive())
                                     {
                                         oldSentinels.SetOnPulseStateChange(null);
                                         objectsToDispose.Add(oldSentinels);
-
-                                        oldSentinels.DetachFromCardio();
                                     }
 
                                     if (sentinels.IsAlive())
-                                    {
                                         sentinels.SetOnPulseStateChange(OnProbeStateChange);
-                                        sentinels.AttachToCardio();
-                                    }
                                 }
                                 catch (Exception)
                                 {
@@ -637,17 +612,7 @@ namespace Sweet.Redis.v2
                             {
                                 var oldMSGroup = Interlocked.Exchange(ref m_MSGroup, msGroup);
                                 if (oldMSGroup != null)
-                                {
                                     objectsToDispose.Add(oldMSGroup);
-
-                                    var nodesGroup = oldMSGroup.Masters;
-                                    if (nodesGroup.IsAlive())
-                                        nodesGroup.DetachFromCardio();
-
-                                    nodesGroup = oldMSGroup.Slaves;
-                                    if (nodesGroup.IsAlive())
-                                        nodesGroup.DetachFromCardio();
-                                }
                             }
                             else
                             {
@@ -661,15 +626,11 @@ namespace Sweet.Redis.v2
                                                    {
                                                        var oldMasters = m_MSGroup.ExchangeMasters((RedisManagedServerGroup)newMasters);
                                                        if (oldMasters != null)
-                                                       {
                                                            oldMasters.SetOnPulseStateChange(null);
-                                                           oldMasters.DetachFromCardio();
-                                                       }
+
                                                        if (newMasters != null)
-                                                       {
                                                            newMasters.SetOnPulseStateChange(OnProbeStateChange);
-                                                           newMasters.AttachToCardio();
-                                                       }
+
                                                        return oldMasters;
                                                    },
                                                    objectsToDispose);
@@ -687,15 +648,11 @@ namespace Sweet.Redis.v2
                                                    {
                                                        var oldSlaves = m_MSGroup.ExchangeSlaves((RedisManagedServerGroup)newSlaves);
                                                        if (oldSlaves != null)
-                                                       {
                                                            oldSlaves.SetOnPulseStateChange(null);
-                                                           oldSlaves.DetachFromCardio();
-                                                       }
+
                                                        if (newSlaves != null)
-                                                       {
                                                            newSlaves.SetOnPulseStateChange(OnProbeStateChange);
-                                                           newSlaves.AttachToCardio();
-                                                       }
+
                                                        return oldSlaves;
                                                    },
                                                    objectsToDispose);
@@ -712,15 +669,11 @@ namespace Sweet.Redis.v2
                                            {
                                                var oldSentinels = Interlocked.Exchange(ref m_Sentinels, (RedisManagedSentinelGroup)newSentinels);
                                                if (oldSentinels != null)
-                                               {
                                                    oldSentinels.SetOnPulseStateChange(null);
-                                                   oldSentinels.DetachFromCardio();
-                                               }
+
                                                if (newSentinels != null)
-                                               {
                                                    newSentinels.SetOnPulseStateChange(OnProbeStateChange);
-                                                   newSentinels.AttachToCardio();
-                                               }
+                                               
                                                return oldSentinels;
                                            },
                                            objectsToDispose);
@@ -1054,18 +1007,9 @@ namespace Sweet.Redis.v2
                             var newGroup = new RedisManagedServerGroup(Settings, role, null, null);
                             if (msGroup.IsAlive())
                             {
-                                var oldGroup = isMaster ?
+                                using (isMaster ?
                                     msGroup.ExchangeMasters(newGroup) :
-                                           msGroup.ExchangeSlaves(newGroup);
-
-                                if (oldGroup != null)
-                                {
-                                    oldGroup.DetachFromCardio();
-                                    oldGroup.Dispose();
-                                }
-
-                                if (newGroup.IsAlive())
-                                    newGroup.AttachToCardio();
+                                           msGroup.ExchangeSlaves(newGroup)) { }
                             }
                             else
                             {
@@ -1075,26 +1019,7 @@ namespace Sweet.Redis.v2
                                     new RedisManagedMSGroup(Settings, newGroup, siblingGroup, OnProbeStateChange) :
                                     new RedisManagedMSGroup(Settings, siblingGroup, newGroup, OnProbeStateChange);
 
-                                var oldMSGroup = Interlocked.Exchange(ref m_MSGroup, msGroup);
-
-                                if (oldMSGroup != null)
-                                {
-                                    var oldMasters = oldMSGroup.Masters;
-                                    if (oldMasters != null)
-                                        oldMasters.DetachFromCardio();
-
-                                    var oldSlaves = oldMSGroup.Slaves;
-                                    if (oldSlaves != null)
-                                        oldSlaves.DetachFromCardio();
-                                }
-
-                                var newMasters = msGroup.Masters;
-                                if (newMasters.IsAlive())
-                                    newMasters.AttachToCardio();
-
-                                var newSlaves = msGroup.Slaves;
-                                if (newSlaves.IsAlive())
-                                    newSlaves.AttachToCardio();
+                                using (Interlocked.Exchange(ref m_MSGroup, msGroup)) { }
                             }
                         }
                     }
@@ -1106,13 +1031,7 @@ namespace Sweet.Redis.v2
                         if (!nodesGroup.IsAlive())
                         {
                             nodesGroup = new RedisManagedSentinelGroup(Settings, m_MasterName, null, OnProbeStateChange);
-                            var oldSentinels = Interlocked.Exchange(ref m_Sentinels, (RedisManagedSentinelGroup)nodesGroup);
-
-                            if (oldSentinels.IsAlive())
-                                oldSentinels.DetachFromCardio();
-
-                            if (nodesGroup.IsAlive())
-                                nodesGroup.AttachToCardio();
+                            using (Interlocked.Exchange(ref m_Sentinels, (RedisManagedSentinelGroup)nodesGroup)) { }
                         }
                     }
                     break;
@@ -1210,8 +1129,6 @@ namespace Sweet.Redis.v2
                                 if (discoveredRole != RedisRole.Sentinel)
                                 {
                                     var newServer = new RedisManagedServer(client, settings, discoveredRole, null);
-                                    // TODO
-                                    // newServer.ReuseSocket(client);
 
                                     node = new RedisManagedServerNode(settings, discoveredRole, newServer, null);
                                     nodesGroup.AppendNode(node);
@@ -1225,8 +1142,6 @@ namespace Sweet.Redis.v2
                                 else // Sentinel
                                 {
                                     var newListener = new RedisManagedSentinelListener(client, settings, null);
-                                    // TODO
-                                    // newListener.ReuseSocket(client);
 
                                     node = new RedisManagedSentinelNode(settings, newListener, null);
                                     nodesGroup.AppendNode(node);
