@@ -394,6 +394,46 @@ namespace Sweet.Redis.v2
         public static readonly byte[] Watch = "WATCH".ToBytes();
         public static readonly byte[] Unwatch = "UNWATCH".ToBytes();
 
+        // Cluster commands
+        public static readonly byte[] Cluster = "CLUSTER".ToBytes();
+
+        // Cluster Sub-commands
+        public static readonly byte[] ClusterAddSlots = "ADDSLOTS".ToBytes();
+        public static readonly byte[] ClusterCountFailureReports = "COUNT-FAILURE-REPORTS".ToBytes();
+        public static readonly byte[] ClusterCountKeysInSlot = "COUNTKEYSINSLOT".ToBytes();
+        public static readonly byte[] ClusterDelSlots = "DELSLOTS".ToBytes();
+        public static readonly byte[] ClusterFailover = "FAILOVER".ToBytes();
+        public static readonly byte[] ClusterFlushSlots = "FLUSHSLOTS".ToBytes();
+        public static readonly byte[] ClusterForget = "FORGET".ToBytes();
+        public static readonly byte[] ClusterGetKeysInSlot = "GETKEYSINSLOT".ToBytes();
+        public static readonly byte[] ClusterInfo = "INFO".ToBytes();
+        public static readonly byte[] ClusterKeySlot = "KEYSLOT".ToBytes();
+        public static readonly byte[] ClusterMeet = "MEET".ToBytes();
+        public static readonly byte[] ClusterNodes = "NODES".ToBytes();
+        public static readonly byte[] ClusterReplicate = "REPLICATE".ToBytes();
+        public static readonly byte[] ClusterReset = "RESET".ToBytes();
+        public static readonly byte[] ClusterSaveConfig = "SAVECONFIG".ToBytes();
+        public static readonly byte[] ClusterSetConfigEpoch = "SET-CONFIG-EPOCH".ToBytes();
+        public static readonly byte[] ClusterSetSlot = "SETSLOT".ToBytes();
+        public static readonly byte[] ClusterSlaves = "SLAVES".ToBytes();
+        public static readonly byte[] ClusterSlots = "SLOTS".ToBytes();
+        public static readonly byte[] ClusterReadonly = "READONLY".ToBytes();
+        public static readonly byte[] ClusterReadWrite = "READWRITE".ToBytes();
+
+        // Cluster Failover Modes
+        public static readonly byte[] ClusterForce = "FORCE".ToBytes();
+        public static readonly byte[] ClusterTakeover = "TAKEOVER".ToBytes();
+
+        // Cluster Reset Modes
+        public static readonly byte[] ClusterHard = "HARD".ToBytes();
+        public static readonly byte[] ClusterSoft = "SOFT".ToBytes();
+
+        // Cluster SetSlot Modes
+        public static readonly byte[] ClusterImporting = "IMPORTING".ToBytes();
+        public static readonly byte[] ClusterMigrating = "MIGRATING".ToBytes();
+        public static readonly byte[] ClusterStable = "STABLE".ToBytes();
+        public static readonly byte[] ClusterNode = "NODE".ToBytes();
+
         #endregion Command Texts
     }
 }

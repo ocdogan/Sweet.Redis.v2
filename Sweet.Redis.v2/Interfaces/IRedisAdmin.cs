@@ -26,6 +26,7 @@ namespace Sweet.Redis.v2
 {
     public interface IRedisAdmin : IRedisDisposable
     {
-        IRedisCommandsServer Commands { get; }
+        IRedisCommandsServer Server { get; }
+        IRedisCommandsCluster Cluster { get; }
     }
 }

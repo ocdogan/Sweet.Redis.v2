@@ -123,17 +123,17 @@ namespace Sweet.Redis.v2
 
         RedisMultiString GetKeysInSlot(int slot, int count);
 
-        RedisString Info();
+        RedisResult<RedisClusterInfo> Info();
 
         RedisInteger KeySlot(RedisParam key);
 
         RedisBool Meet(RedisParam ip, int port);
 
-        RedisMultiString Nodes();
+        RedisResult<RedisClusterNodeInfo[]> Nodes();
 
-        RedisString Readonly();
+        RedisBool Readonly();
 
-        RedisString ReadWrite();
+        RedisBool ReadWrite();
 
         RedisBool Replicate(RedisParam nodeId);
 
@@ -149,8 +149,8 @@ namespace Sweet.Redis.v2
         RedisBool SetSlotImporting(int slot, RedisParam nodeId);
         RedisBool SetSlotStable(int slot);
 
-        RedisMultiString Slaves(RedisParam nodeId);
+        RedisResult<RedisClusterNodeInfo[]> Slaves(RedisParam nodeId);
 
-        RedisArray Slots();
+        RedisResult<RedisClusterSlotInfo[]> Slots();
     }
 }

@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\RedisClusterCommands.cs" />
     <Compile Include="Commands\RedisCommandSet.cs" />
     <Compile Include="Commands\RedisCommandUtils.cs" />
     <Compile Include="Commands\RedisConnectionCommands.cs" />
@@ -63,6 +64,9 @@
     <Compile Include="Common\Cardio\RedisHeartBeatPulseResult.cs" />
     <Compile Include="Common\ClientInfo\RedisClientInfo.cs" />
     <Compile Include="Common\ClientInfo\RedisClientInfoFlag.cs" />
+    <Compile Include="Common\Cluster\RedisClusterNodeInfo.cs" />
+    <Compile Include="Common\Cluster\RedisClusterInfo.cs" />
+    <Compile Include="Common\Cluster\RedisClusterSlotInfo.cs" />
     <Compile Include="Common\RedisBytesCache.cs" />
     <Compile Include="Common\RedisSynchronizedQueue.cs" />
     <Compile Include="Connection\Async\RedisAsyncSocketBase.cs" />

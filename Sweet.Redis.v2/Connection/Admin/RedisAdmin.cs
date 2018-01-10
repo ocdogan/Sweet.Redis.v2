@@ -28,7 +28,8 @@ namespace Sweet.Redis.v2
     {
         #region Field Members
 
-        private IRedisCommandsServer m_Commands;
+        private IRedisCommandsCluster m_ClusterCommands;
+        private IRedisCommandsServer m_ServerCommands;
 
         #endregion Field Members
 
@@ -42,14 +43,25 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public IRedisCommandsServer Commands
+        public IRedisCommandsServer Server
         {
             get
             {
                 ValidateNotDisposed();
-                if (m_Commands == null)
-                    m_Commands = new RedisServerCommands(this);
-                return m_Commands;
+                if (m_ServerCommands == null)
+                    m_ServerCommands = new RedisServerCommands(this);
+                return m_ServerCommands;
+            }
+        }
+
+        public IRedisCommandsCluster Cluster
+        {
+            get
+            {
+                ValidateNotDisposed();
+                if (m_ClusterCommands == null)
+                    m_ClusterCommands = new RedisClusterCommands(this);
+                return m_ClusterCommands;
             }
         }
 

@@ -34,9 +34,9 @@ namespace Sweet.Redis.v2
                 // UnitTests();
 
                 // PerformancePingTests();
-                // PerformanceGetTinyTests();
+                PerformanceGetTinyTests();
                 // PerformancePipeTests();
-                PerformanceManagerGetTinyTests();
+                // PerformanceManagerGetTinyTests();
 
                 // MonitorTest1();
                 // MonitorTest2();
