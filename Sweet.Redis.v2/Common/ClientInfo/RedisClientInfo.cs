@@ -29,7 +29,7 @@ using System.Linq;
 
 namespace Sweet.Redis.v2
 {
-    public class RedisClientInfo
+    public class RedisClientInfo : IRedisIdentifiedObject
     {
         #region Static Members
 

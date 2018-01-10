@@ -29,7 +29,7 @@ namespace Sweet.Redis.v2
     /*
     master0:name=mymaster,status=ok,address=127.0.0.1:6379,slaves=2,sentinels=1
     */
-    public class RedisServerMasterInfo : RedisInfoBase
+    public class RedisServerMasterInfo : RedisInfoBase, IRedisNamedObject
     {
         #region .Ctors
 

@@ -27,7 +27,7 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisSentinelClient : RedisDisposable, IRedisSentinelClient, IRedisDisposable
+    internal class RedisSentinelClient : RedisDisposable, IRedisSentinelClient, IRedisDisposable, IRedisIdentifiedObject
     {
         #region Field Members
 

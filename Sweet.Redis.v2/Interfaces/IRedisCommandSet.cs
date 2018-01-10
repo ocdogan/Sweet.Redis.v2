@@ -24,8 +24,6 @@
 
 namespace Sweet.Redis.v2
 {
-    public interface IRedisCommandSet
-    {
-        long Id { get; }
-    }
+    public interface IRedisCommandSet : IRedisIdentifiedObject
+    { }
 }

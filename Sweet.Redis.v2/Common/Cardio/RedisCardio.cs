@@ -33,7 +33,7 @@ namespace Sweet.Redis.v2
     {
         #region CardioProbe
 
-        private class CardioProbe : RedisInternalDisposable, IEquatable<CardioProbe>
+        private class CardioProbe : RedisInternalDisposable, IEquatable<CardioProbe>, IRedisIdentifiedObject
         {
             #region Field Members
 

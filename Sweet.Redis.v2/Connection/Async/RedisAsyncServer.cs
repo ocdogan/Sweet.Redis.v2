@@ -27,7 +27,7 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    public class RedisAsyncServer : RedisDisposable, IRedisServer, IRedisPingable
+    public class RedisAsyncServer : RedisDisposable, IRedisServer, IRedisPingable, IRedisIdentifiedObject
     {
         #region Field Members
 

@@ -29,7 +29,7 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisAsyncCommandExecuter : RedisDisposable
+    internal class RedisAsyncCommandExecuter : RedisDisposable, IRedisIdentifiedObject
     {
         #region Field Members
 

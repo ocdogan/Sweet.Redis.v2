@@ -26,7 +26,7 @@ using System;
 
 namespace Sweet.Redis.v2
 {
-    public class RedisNodeInfo : IEquatable<RedisNodeInfo>
+    public class RedisNodeInfo : IEquatable<RedisNodeInfo>, IRedisNamedObject
     {
         #region Static Members
 

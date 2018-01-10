@@ -28,7 +28,7 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    internal class RedisManagedNodesGroup : RedisDisposable
+    internal class RedisManagedNodesGroup : RedisDisposable, IRedisIdentifiedObject
     {
         #region Field Members
 

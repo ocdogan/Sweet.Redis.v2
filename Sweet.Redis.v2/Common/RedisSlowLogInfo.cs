@@ -37,7 +37,7 @@ namespace Sweet.Redis.v2
     5) Client IP address and port (4.0 only).
     6) Client name if set via the CLIENT SETNAME command (4.0 only).
     */
-    public class RedisSlowLogInfo
+    public class RedisSlowLogInfo : IRedisIdentifiedObject
     {
         #region .Ctors
 

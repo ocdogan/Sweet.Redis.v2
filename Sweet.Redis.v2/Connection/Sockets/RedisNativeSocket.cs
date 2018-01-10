@@ -27,7 +27,7 @@ using System.Threading;
 
 namespace Sweet.Redis.v2
 {
-    public class RedisNativeSocket : Socket, IRedisDisposable
+    public class RedisNativeSocket : Socket, IRedisDisposable, IRedisIdentifiedObject
     {
         #region Field Members
 

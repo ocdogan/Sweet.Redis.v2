@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 
 namespace Sweet.Redis.v2
 {
-    public class RedisAsyncSocketBase : RedisDisposable
+    public class RedisAsyncSocketBase : RedisDisposable, IRedisIdentifiedObject
     {
         #region Constants
 

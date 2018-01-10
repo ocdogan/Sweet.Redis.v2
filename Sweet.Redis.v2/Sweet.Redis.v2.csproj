@@ -111,7 +111,6 @@
     <Compile Include="Common\PubSub\RedisPubSubMessage.cs" />
     <Compile Include="Common\PubSub\RedisPubSubMessageType.cs" />
     <Compile Include="Common\RedisBatchState.cs" />
-    <Compile Include="Common\RedisConnectionState.cs" />
     <Compile Include="Common\RedisNodeInfo.cs" />
     <Compile Include="Connection\Admin\RedisAdmin.cs" />
     <Compile Include="Connection\Db\RedisBatch.cs" />
@@ -146,9 +145,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\IRedisCommandsConnection.cs" />
-    <Compile Include="Interfaces\IRedisConnectionInfoProvider.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Interfaces\IRedisDb.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -182,9 +178,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Interfaces\IRedisCommandsPubSub.cs" />
-    <Compile Include="Interfaces\IRedisReceiver.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Interfaces\IRedisCommandsScripting.cs" />
     <Compile Include="Interfaces\IRedisSentinelClient.cs">
       <SubType>Code</SubType>
@@ -281,7 +274,7 @@
     <Compile Include="Connection\Async\RedisAsyncServer.cs" />
     <Compile Include="Interfaces\IRedisServer.cs" />
     <Compile Include="Connection\Manager\RedisManagedEndPointResolver.cs" />
-    <Compile Include="Connection\Common\RedisEndPointRsolver.cs" />
+    <Compile Include="Connection\Common\RedisEndPointResolver.cs" />
     <Compile Include="Interfaces\IRedisCommandsCluster.cs" />
   </ItemGroup>
   <ItemGroup>
