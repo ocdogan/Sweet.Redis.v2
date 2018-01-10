@@ -16,6 +16,7 @@ namespace Sweet.Redis.v2
             public long LoopCount;
             public long FailCount;
             public double Concurrency;
+            public double NsOp;
             public long SumOfInnerTicks;
             public double SumOfInnerMSecs;
         }
@@ -34,9 +35,9 @@ namespace Sweet.Redis.v2
                 // UnitTests();
 
                 // PerformancePingTests();
-                PerformanceGetTinyTests();
+                // PerformanceGetTinyTests();
                 // PerformancePipeTests();
-                // PerformanceManagerGetTinyTests();
+                PerformanceManagerGetTinyTests();
 
                 // MonitorTest1();
                 // MonitorTest2();
@@ -1421,7 +1422,8 @@ namespace Sweet.Redis.v2
                                             FailCount = failCount,
                                             SumOfInnerTicks = ticks,
                                             SumOfInnerMSecs = elapsedMSecs,
-                                            Concurrency = Math.Ceiling(1000 * ((double)requestCount / elapsedMSecs))
+                                            Concurrency = Math.Ceiling(1000 * ((double)requestCount / elapsedMSecs)),
+                                            NsOp = (elapsedMSecs * 1000000) / (double)loopCount
                                         };
 
                                         lock (results)
@@ -1493,6 +1495,7 @@ namespace Sweet.Redis.v2
                     }
 
                     sumOfResults.Concurrency = Math.Ceiling(1000 * ((double)sumOfResults.LoopCount / (sumOfResults.SumOfInnerTicks / TimeSpan.TicksPerMillisecond)));
+                    sumOfResults.NsOp = ((sumOfResults.SumOfInnerTicks / TimeSpan.TicksPerMillisecond) * 1000000) / (double)sumOfResults.LoopCount;
 
                     Console.WriteLine();
                     WriteResult(sumOfResults);
@@ -1645,7 +1648,8 @@ namespace Sweet.Redis.v2
                                             FailCount = failCount,
                                             SumOfInnerTicks = ticks,
                                             SumOfInnerMSecs = elapsedMSecs,
-                                            Concurrency = Math.Ceiling(1000 * ((double)requestCount / elapsedMSecs))
+                                            Concurrency = Math.Ceiling(1000 * ((double)requestCount / elapsedMSecs)),
+                                            NsOp = (elapsedMSecs * 1000000) / (double)loopCount
                                         };
 
                                         lock (results)
@@ -1706,6 +1710,7 @@ namespace Sweet.Redis.v2
                     }
 
                     sumOfResults.Concurrency = Math.Ceiling(1000 * ((double)sumOfResults.LoopCount / (sumOfResults.SumOfInnerTicks / TimeSpan.TicksPerMillisecond)));
+                    sumOfResults.NsOp = ((sumOfResults.SumOfInnerTicks / TimeSpan.TicksPerMillisecond) * 1000000) / (double)sumOfResults.LoopCount;
 
                     Console.WriteLine();
                     WriteResult(sumOfResults);
@@ -1919,6 +1924,7 @@ namespace Sweet.Redis.v2
             Console.WriteLine("Sum of inner ticks: " + result.SumOfInnerTicks);
             Console.WriteLine("Sum of inner msecs: " + result.SumOfInnerMSecs);
             Console.WriteLine("Average concurrency (message/sec): " + result.Concurrency);
+            Console.WriteLine("Average Nsec per Operation (ns/op): " + result.NsOp);
             Console.WriteLine("Press any key to continue, ESC to escape ...");
         }
 
@@ -1979,7 +1985,8 @@ namespace Sweet.Redis.v2
                         FailCount = failCount,
                         SumOfInnerTicks = ticks,
                         SumOfInnerMSecs = elapsedMSecs,
-                        Concurrency = Math.Ceiling(1000 * ((double)loopCount / elapsedMSecs))
+                        Concurrency = Math.Ceiling(1000 * ((double)loopCount / elapsedMSecs)),
+                        NsOp = (elapsedMSecs * 1000000) / (double)loopCount
                     };
                     results.Add(testResult);
                 }
@@ -2045,7 +2052,8 @@ namespace Sweet.Redis.v2
                         FailCount = failCount,
                         SumOfInnerTicks = ticks,
                         SumOfInnerMSecs = elapsedMSecs,
-                        Concurrency = Math.Ceiling(1000 * ((double)loopCount / elapsedMSecs))
+                        Concurrency = Math.Ceiling(1000 * ((double)loopCount / elapsedMSecs)),
+                        NsOp = (elapsedMSecs * 1000000) / (double)loopCount
                     };
                     results.Add(testResult);
                 }
@@ -2110,7 +2118,8 @@ namespace Sweet.Redis.v2
                         FailCount = failCount,
                         SumOfInnerTicks = ticks,
                         SumOfInnerMSecs = elapsedMSecs,
-                        Concurrency = Math.Ceiling(1000 * ((double)loopCount / elapsedMSecs))
+                        Concurrency = Math.Ceiling(1000 * ((double)loopCount / elapsedMSecs)),
+                        NsOp = (elapsedMSecs * 1000000) / (double)loopCount
                     };
                     results.Add(testResult);
                 }
@@ -2176,7 +2185,8 @@ namespace Sweet.Redis.v2
                         FailCount = failCount,
                         SumOfInnerTicks = ticks,
                         SumOfInnerMSecs = elapsedMSecs,
-                        Concurrency = Math.Ceiling(1000 * ((double)loopCount / elapsedMSecs))
+                        Concurrency = Math.Ceiling(1000 * ((double)loopCount / elapsedMSecs)),
+                        NsOp = (elapsedMSecs * 1000000) / (double)loopCount
                     };
                     results.Add(testResult);
                 }

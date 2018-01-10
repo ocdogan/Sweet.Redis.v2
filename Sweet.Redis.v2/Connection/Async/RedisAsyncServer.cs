@@ -104,14 +104,17 @@ namespace Sweet.Redis.v2
             using (Interlocked.Exchange(ref m_HeartBeatProbe, null)) { }
 
             var monitorChannel = Interlocked.Exchange(ref m_MonitorChannel, null);
+            var pubSubChannel = Interlocked.Exchange(ref m_PubSubChannel, null);
+
+            base.OnDispose(disposing);
+
             if (monitorChannel != null)
                 monitorChannel.Dispose();
 
-            var pubSubChannel = Interlocked.Exchange(ref m_PubSubChannel, null);
             if (pubSubChannel != null)
                 pubSubChannel.Dispose();
 
-            base.OnDispose(disposing);
+            using (Interlocked.Exchange(ref m_TransactionalClient, null)) { }
 
             var clients = Interlocked.Exchange(ref m_Clients, null);
             if (clients != null)
