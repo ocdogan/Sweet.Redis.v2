@@ -35,7 +35,7 @@ namespace Sweet.Redis.v2
         private int m_NodeIndex;
         private readonly object m_SyncRoot = new object();
 
-        private RedisConnectionSettings m_Settings;
+        private RedisManagerSettings m_Settings;
 
         private RedisManagedNode[] m_Nodes;
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
@@ -70,7 +70,6 @@ namespace Sweet.Redis.v2
 
         protected override void OnDispose(bool disposing)
         {
-            Interlocked.Exchange(ref m_Settings, null);
             Interlocked.Exchange(ref m_OnPulseStateChange, null);
 
             base.OnDispose(disposing);
@@ -87,7 +86,7 @@ namespace Sweet.Redis.v2
 
         public RedisRole Role { get; internal set; }
 
-        public RedisConnectionSettings Settings { get { return m_Settings; } }
+        public RedisManagerSettings Settings { get { return m_Settings; } }
 
         #endregion Properties
 

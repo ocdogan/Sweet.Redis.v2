@@ -27,12 +27,11 @@ using System.Net;
 
 namespace Sweet.Redis.v2
 {
-    public interface IRedisPubSubChannel : IRedisDisposableBase
+    public interface IRedisPubSubChannel : IRedisDisposableBase, IRedisPingable
     {
         EndPoint EndPoint { get; }
         DateTime LastMessageSeenTime { get; }
 
-        bool Ping();
         void Quit();
         void ResubscribeAll();
         void UnsubscribeAll();

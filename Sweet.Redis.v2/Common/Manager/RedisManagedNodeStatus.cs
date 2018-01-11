@@ -29,6 +29,7 @@ namespace Sweet.Redis.v2
     [Flags]
     public enum RedisManagedNodeStatus : long
     {
+        Empty = 0,
         Open = 0,
         HalfClosed = 1 << 0,
         Closed = 1 << 1,

@@ -62,7 +62,7 @@ namespace Sweet.Redis.v2
         #region Field Members
 
         private string m_MasterName;
-        private long m_MonitoringStatus;
+        private int m_MonitoringStatus;
 
         private Action<RedisSentinelMessage> m_OnSentinelMessage;
 
@@ -105,7 +105,7 @@ namespace Sweet.Redis.v2
         {
             get
             {
-                return Interlocked.Read(ref m_MonitoringStatus) == RedisConstants.One;
+                return m_MonitoringStatus != 0;
             }
         }
 
@@ -143,13 +143,12 @@ namespace Sweet.Redis.v2
         {
             ValidateNotDisposed();
 
-            if (Interlocked.CompareExchange(ref m_MonitoringStatus, RedisConstants.One, RedisConstants.Zero) ==
-                RedisConstants.Zero)
+            if (Interlocked.CompareExchange(ref m_MonitoringStatus, 1, 0) == 0)
             {
                 var attached = false;
                 try
                 {
-                    var nodes = (RedisManagedSentinelNode[])Nodes;
+                    var nodes = Nodes;
                     if (!nodes.IsEmpty())
                     {
                         var monitoredSentinels = m_MonitoredSentinels;
@@ -161,17 +160,17 @@ namespace Sweet.Redis.v2
                 }
                 catch (Exception)
                 {
-                    Interlocked.Exchange(ref m_MonitoringStatus, RedisConstants.Zero);
+                    Interlocked.Exchange(ref m_MonitoringStatus, 0);
                 }
                 finally
                 {
                     if (!attached)
-                        Interlocked.Exchange(ref m_MonitoringStatus, RedisConstants.Zero);
+                        Interlocked.Exchange(ref m_MonitoringStatus, 0);
                 }
             }
         }
 
-        private bool TryToMonitorOneOf(RedisManagedSentinelNode[] nodes,
+        private bool TryToMonitorOneOf(RedisManagedNode[] nodes,
                                        List<RedisManagedSentinelListener> monitoredSentinels,
                                        Action<object> onComplete,
                                        bool getDownNodes)
@@ -193,7 +192,7 @@ namespace Sweet.Redis.v2
                     foreach (var node in filteredNodes)
                     {
                         if (!Disposed &&
-                           TryToMonitor(node, monitoredSentinels, onComplete))
+                           TryToMonitor(node as RedisManagedSentinelNode, monitoredSentinels, onComplete))
                             return true;
                     }
                 }
@@ -414,8 +413,7 @@ namespace Sweet.Redis.v2
 
         public void Quit()
         {
-            if (Interlocked.CompareExchange(ref m_MonitoringStatus, RedisConstants.Zero, RedisConstants.One) ==
-                RedisConstants.One)
+            if (Interlocked.CompareExchange(ref m_MonitoringStatus, 0, 1) == 1)
             {
                 var monitoredSentinels = m_MonitoredSentinels;
                 if (monitoredSentinels != null && monitoredSentinels.Count > 0)

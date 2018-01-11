@@ -37,7 +37,7 @@ namespace Sweet.Redis.v2
                 // PerformancePingTests();
                 // PerformanceGetTinyTests();
                 // PerformancePipeTests();
-                PerformanceManagerGetTinyTests();
+                // PerformanceManagerGetTinyTests();
 
                 // MonitorTest1();
                 // MonitorTest2();
@@ -79,7 +79,7 @@ namespace Sweet.Redis.v2
                 // ManagerTest10();
                 // ManagerTest11();
                 // ManagerTest12();
-                // ManagerTest14();
+                ManagerTest14();
             }
             while (Console.ReadKey(true).Key != ConsoleKey.Escape);
         }
@@ -103,11 +103,13 @@ namespace Sweet.Redis.v2
                     Console.WriteLine();
                     Console.WriteLine("Press any key to continue, ESC to escape ...");
 
-                    var modKey = 0;
+                    // var modKey = 0;
                     do
                     {
-                        var ch = (char)('0' + (i++ % 10));
-                        var text = i.ToString() + "-" + new string(ch, 10);
+                        i = (i + 1 % 10000);
+
+                        var ch = (char)('0' + (i % 10));
+                        var text = i.ToString() + "-" + new string(ch, 3);
 
                         try
                         {
@@ -127,14 +129,14 @@ namespace Sweet.Redis.v2
                         {
                             Console.WriteLine(e);
                             Console.WriteLine();
-                            Console.WriteLine("Press any key to continue, ESC to escape ...");
+                            // Console.WriteLine("Press any key to continue, ESC to escape ...");
                             /* if (Console.ReadKey(true).Key == ConsoleKey.Escape)
                                 return; */
                         }
 
-                        modKey = (modKey + 1) % 100;
+                        /* modKey = (modKey + 1) % 100;
                         if (modKey == 99 && WaitForConsoleKey(50).Key == ConsoleKey.Escape)
-                            return;
+                            return; */
                     }
                     while (true);
                 }

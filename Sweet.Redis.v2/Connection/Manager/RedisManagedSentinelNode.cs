@@ -183,16 +183,6 @@ namespace Sweet.Redis.v2
             set { }
         }
 
-        public RedisManagedNodeStatus Status
-        {
-            get { return m_Status; }
-            set
-            {
-                if (!m_Status.HasFlag(RedisManagedNodeStatus.Disposed))
-                    m_Status = value;
-            }
-        }
-
         #endregion Properties
 
         #region Methods

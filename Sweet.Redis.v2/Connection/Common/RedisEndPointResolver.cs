@@ -110,7 +110,6 @@ namespace Sweet.Redis.v2
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
-            Interlocked.Exchange(ref m_Settings, null);
         }
 
         #endregion Destructors

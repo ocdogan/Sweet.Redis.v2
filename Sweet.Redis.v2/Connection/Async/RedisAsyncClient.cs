@@ -267,7 +267,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        public bool Ping()
+        public virtual bool Ping()
         {
             if (!Disposed)
             {
@@ -281,12 +281,13 @@ namespace Sweet.Redis.v2
                                                      RedisCommandType.SendAndReceive)
                         { Priority = RedisCommandPriority.High }) as RedisString;
 
-                        return (!ReferenceEquals(result, null) &&
-                                result.Value == RedisConstants.PONG);
+                        return (result == RedisConstants.PONG);
                     }
                 }
-                catch (Exception)
-                { }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
             }
             return false;
         }
@@ -310,8 +311,7 @@ namespace Sweet.Redis.v2
                                                 RedisCommandType.SendAndReceive)
                     { Priority = RedisCommandPriority.High }) as RedisString;
 
-                    success = !ReferenceEquals(result, null) &&
-                        result.Value == RedisConstants.OK;
+                    success = (result == RedisConstants.OK);
                 }
             }
             catch (Exception) { }

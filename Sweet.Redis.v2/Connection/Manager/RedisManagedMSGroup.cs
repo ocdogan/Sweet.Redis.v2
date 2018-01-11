@@ -68,7 +68,6 @@ namespace Sweet.Redis.v2
         {
             base.OnDispose(disposing);
 
-            Interlocked.Exchange(ref m_Settings, null);
             Interlocked.Exchange(ref m_OnPulseStateChange, null);
 
             var slaves = ExchangeSlavesInternal(null);

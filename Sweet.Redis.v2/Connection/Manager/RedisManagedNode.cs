@@ -41,7 +41,7 @@ namespace Sweet.Redis.v2
         protected RedisManagedNodeStatus m_Status;
 
         private bool m_OwnsSeed;
-        private RedisConnectionSettings m_Settings;
+        private RedisManagerSettings m_Settings;
 
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
 
@@ -113,7 +113,7 @@ namespace Sweet.Redis.v2
             get
             {
                 return base.Disposed ||
-                       m_Status.HasFlag(RedisManagedNodeStatus.Disposed);
+                       (m_Status & RedisManagedNodeStatus.Disposed) != RedisManagedNodeStatus.Empty;
             }
         }
 
@@ -123,7 +123,7 @@ namespace Sweet.Redis.v2
 
         public virtual bool IsClosed
         {
-            get { return m_Status != RedisManagedNodeStatus.Open || base.Disposed; }
+            get { return m_Status != RedisManagedNodeStatus.Empty || base.Disposed; }
             set
             {
                 if (!Disposed)
@@ -138,7 +138,7 @@ namespace Sweet.Redis.v2
 
         public virtual bool IsHalfClosed
         {
-            get { return ((RedisManagedNodeStatus)m_Status).HasFlag(RedisManagedNodeStatus.HalfClosed); }
+            get { return (m_Status & RedisManagedNodeStatus.HalfClosed) != RedisManagedNodeStatus.Empty; }
             set
             {
                 if (value)
@@ -200,13 +200,23 @@ namespace Sweet.Redis.v2
 
         public object Seed { get { return m_Seed; } }
 
+        public RedisManagedNodeStatus Status
+        {
+            get { return m_Status; }
+            set
+            {
+                if (!Disposed || value == RedisManagedNodeStatus.Disposed)
+                    m_Status = value;
+            }
+        }
+
         public virtual RedisRole Role
         {
             get { return m_Role; }
             set { m_Role = value; }
         }
 
-        public RedisConnectionSettings Settings { get { return m_Settings; } }
+        public RedisManagerSettings Settings { get { return m_Settings; } }
 
         int IRedisHeartBeatProbe.PulseFailCount
         {
@@ -261,41 +271,51 @@ namespace Sweet.Redis.v2
 
         #region Pulse
 
-        protected void AttachToCardio()
+        protected virtual bool AttachToCardio()
         {
             if (!Disposed)
             {
                 var settings = Settings;
                 if (settings != null && settings.HeartBeatEnabled &&
                     Interlocked.CompareExchange(ref m_ProbeAttached, 1, 0) == 0)
+                {
                     RedisCardio.Default.Attach(this, settings.HearBeatIntervalInSecs);
+                    return true;
+                }
             }
+            return false;
         }
 
-        protected void DetachFromCardio()
+        protected virtual bool DetachFromCardio()
         {
             if (Interlocked.CompareExchange(ref m_ProbeAttached, 0, 1) == 1)
+            {
                 RedisCardio.Default.Detach(this);
+                return true;
+            }
+            return false;
         }
 
         RedisHeartBeatPulseResult IRedisHeartBeatProbe.Pulse()
         {
-            if (!Disposed && m_PulseState != 0)
+            if (!Disposed && 
+                Interlocked.CompareExchange(ref m_PulseState, 1, 0) == 0)
             {
                 var success = false;
                 try
                 {
                     success = Ping();
                 }
-                catch (Exception) { }
+                catch (Exception) 
+                { }
                 finally
                 {
+                    Interlocked.Exchange(ref m_PulseState, 0);
+                    
                     if (success)
                         Interlocked.Exchange(ref m_PulseFailCount, 0);
                     else if (m_PulseFailCount < int.MaxValue)
                         Interlocked.Add(ref m_PulseFailCount, 1);
-
-                    Interlocked.Exchange(ref m_PulseState, 0);
                 }
 
                 return success ? RedisHeartBeatPulseResult.Success : RedisHeartBeatPulseResult.Failed;
