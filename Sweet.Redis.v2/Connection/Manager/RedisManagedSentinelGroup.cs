@@ -139,15 +139,17 @@ namespace Sweet.Redis.v2
             Interlocked.Exchange(ref m_OnSentinelMessage, onSentinelMessage);
         }
 
-        public void Monitor(Action<object> onComplete)
+        public void Monitor(Action<object> onComplete, bool force = false)
         {
             ValidateNotDisposed();
 
-            if (Interlocked.CompareExchange(ref m_MonitoringStatus, 1, 0) == 0)
+            if (Interlocked.CompareExchange(ref m_MonitoringStatus, 1, 0) == 0 || force)
             {
                 var attached = false;
                 try
                 {
+                    RemoveClosedNodes();
+
                     var nodes = Nodes;
                     if (!nodes.IsEmpty())
                     {
@@ -168,6 +170,47 @@ namespace Sweet.Redis.v2
                         Interlocked.Exchange(ref m_MonitoringStatus, 0);
                 }
             }
+        }
+
+        private void RemoveClosedNodes()
+        {
+            var monitoredSentinels = m_MonitoredSentinels;
+            try
+            {
+                if (!monitoredSentinels.IsEmpty())
+                {
+                    for (var i = monitoredSentinels.Count - 1; i > -1; i--)
+                    {
+                        var node = monitoredSentinels[i];
+
+                        if (!node.IsAlive())
+                            monitoredSentinels.Remove(node);
+                        else
+                        {
+                            var success = false;
+                            try
+                            {
+                                success = node.Ping();
+                            }
+                            catch (Exception)
+                            { }
+
+                            if (!success)
+                            {
+                                monitoredSentinels.Remove(node);
+                                try
+                                {
+                                    node.Quit();
+                                }
+                                catch (Exception)
+                                { }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            { }
         }
 
         private bool TryToMonitorOneOf(RedisManagedNode[] nodes,

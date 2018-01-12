@@ -701,7 +701,7 @@ namespace Sweet.Redis.v2
                 if (sentinels.IsAlive())
                 {
                     sentinels.RegisterToMessageEvents(OnSentinelMessage);
-                    sentinels.Monitor(OnSentinelConnectionDrop);
+                    sentinels.Monitor(OnSentinelConnectionDrop, true);
                 }
             });
         }
@@ -1076,36 +1076,46 @@ namespace Sweet.Redis.v2
 
                 if (node != null)
                 {
-                    switch (messageType)
+                    try
                     {
-                        case RedisSentinelMessageType.SubjectivelyDown:
-                            node.IsHalfClosed = true;
-                            break;
-                        case RedisSentinelMessageType.SubjectivelyUp:
-                            node.IsHalfClosed = false;
-                            if (role != RedisRole.Master)
+                        switch (messageType)
+                        {
+                            case RedisSentinelMessageType.SubjectivelyDown:
+                                node.IsHalfClosed = true;
+                                break;
+                            case RedisSentinelMessageType.SubjectivelyUp:
+                                node.IsHalfClosed = false;
+                                if (role != RedisRole.Master)
+                                    node.IsClosed = false;
+                                break;
+                            case RedisSentinelMessageType.ObjectivelyDown:
+                                node.IsClosed = true;
+                                break;
+                            case RedisSentinelMessageType.ObjectivelyUp:
                                 node.IsClosed = false;
-                            break;
-                        case RedisSentinelMessageType.ObjectivelyDown:
-                            node.IsClosed = true;
-                            break;
-                        case RedisSentinelMessageType.ObjectivelyUp:
-                            node.IsClosed = false;
-                            break;
-                        case RedisSentinelMessageType.SentinelDiscovered:
-                            node.IsHalfClosed = false;
-                            node.IsClosed = false;
-                            break;
-                        default:
-                            break;
+                                break;
+                            case RedisSentinelMessageType.SentinelDiscovered:
+                                node.IsHalfClosed = false;
+                                node.IsClosed = false;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    finally
+                    {
+                        if ((role == RedisRole.Sentinel) && node.IsClosed)
+                            AttachToSentinels();
                     }
                     return;
                 }
 
                 // New node discovered
-                if (messageType == RedisSentinelMessageType.SubjectivelyUp ||
+                var nodeIsUp = messageType == RedisSentinelMessageType.SubjectivelyUp ||
                     messageType == RedisSentinelMessageType.ObjectivelyUp ||
-                    messageType == RedisSentinelMessageType.SentinelDiscovered)
+                    messageType == RedisSentinelMessageType.SentinelDiscovered;
+
+                if (nodeIsUp)
                 {
                     var endPointResolver = m_EndPointResolver;
                     if (endPointResolver.IsAlive())
