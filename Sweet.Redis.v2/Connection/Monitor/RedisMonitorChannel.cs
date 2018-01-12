@@ -173,7 +173,9 @@ namespace Sweet.Redis.v2
 
         protected virtual void MessageReceived(RedisMonitorMessage message)
         {
-            if (CanSendMessage(message))
+            if (!Disposed &&
+                !ReferenceEquals(message, null) && !message.IsEmpty &&
+                CanSendMessage(message))
             {
                 var subscriptions = m_Subscriptions;
                 if (subscriptions != null)
@@ -183,7 +185,7 @@ namespace Sweet.Redis.v2
 
         protected virtual bool CanSendMessage(RedisMonitorMessage message)
         {
-            return !ReferenceEquals(message, null) && !message.IsEmpty;
+            return true;
         }
 
         #endregion Base Methods

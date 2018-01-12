@@ -276,20 +276,23 @@ namespace Sweet.Redis.v2
                     var socket = m_Socket;
                     if (socket.IsAlive())
                     {
-                        var result = RunSyncTask(new RedisCommand(RedisConstants.UninitializedDbIndex,
+                        var response = RunSyncTask(new RedisCommand(RedisConstants.UninitializedDbIndex,
                                                      RedisCommandList.Ping,
                                                      RedisCommandType.SendAndReceive)
-                        { Priority = RedisCommandPriority.High }) as RedisString;
+                        { Priority = RedisCommandPriority.High });
 
-                        return (result == RedisConstants.PONG);
+                        return ProcessPingResponse(response);
                     }
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                catch (Exception)
+                { }
             }
             return false;
+        }
+
+        protected virtual bool ProcessPingResponse(RedisResult response)
+        {
+            return (response as RedisString)  == RedisConstants.PONG;
         }
 
         public void Quit()

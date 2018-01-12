@@ -101,9 +101,8 @@ namespace Sweet.Redis.v2
                     Console.Clear();
 
                     Console.WriteLine();
-                    Console.WriteLine("Press any key to continue, ESC to escape ...");
+                    Console.WriteLine("Started ...");
 
-                    // var modKey = 0;
                     do
                     {
                         i = (i + 1 % 10000);
@@ -119,6 +118,8 @@ namespace Sweet.Redis.v2
                                 SetGet(db, "tinytext", text, false);
                             }
 
+                            Thread.Sleep(1);
+
                             using (var db = manager.GetDb(true))
                             {
                                 Ping(db, false);
@@ -129,14 +130,7 @@ namespace Sweet.Redis.v2
                         {
                             Console.WriteLine(e);
                             Console.WriteLine();
-                            // Console.WriteLine("Press any key to continue, ESC to escape ...");
-                            /* if (Console.ReadKey(true).Key == ConsoleKey.Escape)
-                                return; */
                         }
-
-                        /* modKey = (modKey + 1) % 100;
-                        if (modKey == 99 && WaitForConsoleKey(50).Key == ConsoleKey.Escape)
-                            return; */
                     }
                     while (true);
                 }

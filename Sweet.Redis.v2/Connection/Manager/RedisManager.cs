@@ -33,7 +33,7 @@ namespace Sweet.Redis.v2
     {
         #region InitializationState
 
-        private enum InitializationState : long
+        private enum InitializationState : int
         {
             Undefined = 0,
             Initializing = 1,
@@ -45,6 +45,7 @@ namespace Sweet.Redis.v2
         #region Field Members
 
         private long m_Id = RedisIDGenerator<RedisManager>.NextId();
+
         private string m_Name;
         private string m_MasterName;
 
@@ -55,8 +56,8 @@ namespace Sweet.Redis.v2
         private RedisManagedMSGroup m_MSGroup;
         private RedisManagedSentinelGroup m_Sentinels;
 
-        private long m_RefreshState;
-        private long m_InitializationState;
+        private int m_RefreshState;
+        private int m_InitializationState;
         private readonly object m_SyncRoot = new object();
 
         private RedisPubSubChannel m_SentinelHelloChannel;
@@ -100,7 +101,7 @@ namespace Sweet.Redis.v2
             using (Interlocked.Exchange(ref m_EventQ, null)) { }
             using (Interlocked.Exchange(ref m_EndPointResolver, null)) { }
 
-            Interlocked.Exchange(ref m_InitializationState, (long)InitializationState.Undefined);
+            Interlocked.Exchange(ref m_InitializationState, (int)InitializationState.Undefined);
 
             using (oldMSGroup) { }
             using (oldSentinels) { }
@@ -122,8 +123,7 @@ namespace Sweet.Redis.v2
         {
             get
             {
-                return Interlocked.Read(ref m_InitializationState) ==
-                  (long)InitializationState.Initialized;
+                return m_InitializationState == (int)InitializationState.Initialized;
             }
         }
 
@@ -131,8 +131,7 @@ namespace Sweet.Redis.v2
         {
             get
             {
-                return Interlocked.Read(ref m_InitializationState) ==
-                  (long)InitializationState.Initializing;
+                return m_InitializationState == (int)InitializationState.Initializing;
             }
         }
 
@@ -148,7 +147,7 @@ namespace Sweet.Redis.v2
 
         public bool Refreshing
         {
-            get { return Interlocked.Read(ref m_RefreshState) != RedisConstants.Zero; }
+            get { return m_RefreshState != 0; }
         }
 
         public RedisManagerSettings Settings
@@ -248,8 +247,8 @@ namespace Sweet.Redis.v2
 
         private void InitializeNodes()
         {
-            if (Interlocked.CompareExchange(ref m_InitializationState, (long)InitializationState.Initializing, (long)InitializationState.Undefined) !=
-                (long)InitializationState.Initialized)
+            if (Interlocked.CompareExchange(ref m_InitializationState, (int)InitializationState.Initializing, (int)InitializationState.Undefined) !=
+                (int)InitializationState.Initialized)
             {
                 if (!Initialized)
                 {
@@ -261,11 +260,11 @@ namespace Sweet.Redis.v2
                             m_Sentinels.IsAlive() && !m_Sentinels.Nodes.IsEmpty())
                             m_ManagerType = RedisManagerType.Sentinel;
 
-                        Interlocked.Exchange(ref m_InitializationState, (long)InitializationState.Initialized);
+                        Interlocked.Exchange(ref m_InitializationState, (int)InitializationState.Initialized);
                     }
                     catch (Exception)
                     {
-                        Interlocked.Exchange(ref m_InitializationState, (long)InitializationState.Undefined);
+                        Interlocked.Exchange(ref m_InitializationState, (int)InitializationState.Undefined);
                         throw;
                     }
                 }
@@ -544,8 +543,7 @@ namespace Sweet.Redis.v2
 
         private void RefreshAllNodes(bool careValidNodes = true)
         {
-            if (Interlocked.CompareExchange(ref m_RefreshState, RedisConstants.One, RedisConstants.Zero) ==
-                RedisConstants.Zero)
+            if (Interlocked.CompareExchange(ref m_RefreshState, 1, 0) == 0)
             {
                 try
                 {
@@ -691,7 +689,7 @@ namespace Sweet.Redis.v2
                 }
                 finally
                 {
-                    Interlocked.Exchange(ref m_RefreshState, RedisConstants.Zero);
+                    Interlocked.Exchange(ref m_RefreshState, 0);
                 }
             }
         }

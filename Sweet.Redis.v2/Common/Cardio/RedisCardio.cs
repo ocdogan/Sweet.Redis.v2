@@ -37,7 +37,7 @@ namespace Sweet.Redis.v2
         {
             #region Field Members
 
-            private long m_PulseState;
+            private int m_PulseState;
 
             private long m_FailCount;
             private long m_SuccessCount;
@@ -45,7 +45,7 @@ namespace Sweet.Redis.v2
             private RedisCardioProbeStatus m_Status = RedisCardioProbeStatus.OK;
 
             private bool m_IsDisposable;
-            private DateTime? m_LastPulseTime;
+            private int? m_LastPulseTime;
             private IRedisHeartBeatProbe m_Probe;
             private Func<object, RedisCardioPulseStatus, bool> m_OnSetStatus;
 
@@ -61,7 +61,7 @@ namespace Sweet.Redis.v2
                 m_Probe = probe;
                 m_OnSetStatus = onSetHealthState;
                 m_IsDisposable = probe is IRedisDisposableBase;
-                IntervalInSecs = Math.Max(RedisConstants.MinHeartBeatIntervalSecs, Math.Min(RedisConstants.MaxHeartBeatIntervalSecs, intervalInSecs));
+                IntervalInMillisecs = 1000 * Math.Max(RedisConstants.MinHeartBeatIntervalSecs, Math.Min(RedisConstants.MaxHeartBeatIntervalSecs, intervalInSecs));
             }
 
             #endregion .Ctors
@@ -87,13 +87,13 @@ namespace Sweet.Redis.v2
 
             public long Id { get { return m_Id; } }
 
-            public int IntervalInSecs { get; private set; }
+            public int IntervalInMillisecs { get; private set; }
 
             public IRedisHeartBeatProbe Probe { get { return m_Probe; } }
 
             public bool Pulsing
             {
-                get { return m_PulseState != RedisConstants.Zero; }
+                get { return m_PulseState != 0; }
             }
 
             public RedisCardioProbeStatus Status
@@ -102,9 +102,7 @@ namespace Sweet.Redis.v2
                 set
                 {
                     SetCounters(value);
-
-                    var status = new RedisCardioPulseStatus(m_Probe, m_Status, value, FailCount, SuccessCount);
-                    if (CanSetStatus(status))
+                    if (CanSetStatus(value))
                         m_Status = value;
                 }
             }
@@ -120,8 +118,8 @@ namespace Sweet.Redis.v2
 
             public override string ToString()
             {
-                return String.Format("[Id: {0}, IntervalInSecs: {1}, Pulsing: {2}, Status: {3}, SuccessCount: {4}, FailCount: {5}, Probe: {6}]",
-                    m_Id, IntervalInSecs, Pulsing, m_Status, m_SuccessCount, m_FailCount, m_Probe);
+                return String.Format("[Id: {0}, IntervalInMillisecs: {1}, Pulsing: {2}, Status: {3}, SuccessCount: {4}, FailCount: {5}, Probe: {6}]",
+                    m_Id, IntervalInMillisecs, Pulsing, m_Status, m_SuccessCount, m_FailCount, m_Probe);
             }
 
             private void SetCounters(RedisCardioProbeStatus status)
@@ -143,12 +141,11 @@ namespace Sweet.Redis.v2
             public RedisHeartBeatPulseResult Pulse()
             {
                 if (CanPulse() &&
-                    Interlocked.CompareExchange(ref m_PulseState, RedisConstants.One, RedisConstants.Zero) ==
-                    RedisConstants.Zero)
+                    Interlocked.CompareExchange(ref m_PulseState, 1, 0) == 0)
                 {
                     try
                     {
-                        m_LastPulseTime = DateTime.UtcNow;
+                        m_LastPulseTime = Environment.TickCount;
 
                         var probe = m_Probe;
                         if (probe != null)
@@ -168,7 +165,7 @@ namespace Sweet.Redis.v2
                     }
                     finally
                     {
-                        Interlocked.Exchange(ref m_PulseState, RedisConstants.Zero);
+                        Interlocked.Exchange(ref m_PulseState, 0);
                     }
                 }
                 return RedisHeartBeatPulseResult.Unknown;
@@ -176,18 +173,21 @@ namespace Sweet.Redis.v2
 
             public bool CanPulse()
             {
-                return !Disposed && !Pulsing &&
+                return (m_PulseState == 0) && !Disposed && 
                     (!m_IsDisposable || ((IRedisDisposableBase)m_Probe).IsAlive()) &&
-                    (!m_LastPulseTime.HasValue || (DateTime.UtcNow - m_LastPulseTime.Value).TotalSeconds >= IntervalInSecs);
+                    (!m_LastPulseTime.HasValue || (Environment.TickCount - m_LastPulseTime.Value >= IntervalInMillisecs));
             }
 
-            private bool CanSetStatus(RedisCardioPulseStatus status)
+            private bool CanSetStatus(RedisCardioProbeStatus status)
             {
                 try
                 {
-                    var onSetStatus = m_OnSetStatus;
-                    if (onSetStatus != null)
-                        return onSetStatus(this, status);
+                    if (status != m_Status)
+                    {
+                        var onSetStatus = m_OnSetStatus;
+                        if (onSetStatus != null)
+                            return onSetStatus(this, new RedisCardioPulseStatus(m_Probe, m_Status, status, m_FailCount, m_SuccessCount));
+                    }
                 }
                 catch (Exception)
                 { }
@@ -284,8 +284,8 @@ namespace Sweet.Redis.v2
 
         #region Field Members
 
-        private long m_PulseState;
-        private long m_TickState;
+        private int m_PulseState;
+        private int m_TickState;
 
         private Timer m_Ticker;
         private readonly object m_SyncRoot = new object();
@@ -331,7 +331,7 @@ namespace Sweet.Redis.v2
 
         public bool Pulsing
         {
-            get { return m_PulseState != RedisConstants.Zero; }
+            get { return m_PulseState != 0; }
         }
 
         #endregion Properties
@@ -424,12 +424,11 @@ namespace Sweet.Redis.v2
                 {
                     if (m_Ticker == null && !Disposed)
                     {
-                        Interlocked.Exchange(ref m_PulseState, RedisConstants.One);
+                        Interlocked.Exchange(ref m_PulseState, 1);
 
                         Interlocked.Exchange(ref m_Ticker, new Timer((state) =>
                         {
-                            if (Interlocked.CompareExchange(ref m_TickState, RedisConstants.One, RedisConstants.Zero) ==
-                                RedisConstants.Zero)
+                            if (Interlocked.CompareExchange(ref m_TickState, 1, 0) == 0)
                             {
                                 try
                                 {
@@ -437,7 +436,7 @@ namespace Sweet.Redis.v2
                                 }
                                 finally
                                 {
-                                    Interlocked.Exchange(ref m_TickState, RedisConstants.Zero);
+                                    Interlocked.Exchange(ref m_TickState, 0);
                                 }
                             }
                         },
@@ -468,7 +467,7 @@ namespace Sweet.Redis.v2
 
         private void Stop()
         {
-            Interlocked.Exchange(ref m_PulseState, RedisConstants.Zero);
+            Interlocked.Exchange(ref m_PulseState, 0);
 
             var timer = Interlocked.Exchange(ref m_Ticker, null);
             if (timer != null)
@@ -483,7 +482,7 @@ namespace Sweet.Redis.v2
                 return;
             }
 
-            if (Pulsing)
+            if (m_PulseState != 0)
             {
                 CardioProbe[] probesList = null;
                 lock (m_SyncRoot)
@@ -499,7 +498,7 @@ namespace Sweet.Redis.v2
                     {
                         try
                         {
-                            if (Disposed || !Pulsing)
+                            if (Disposed || (m_PulseState == 0))
                                 return;
 
                             if (cp.CanPulse())

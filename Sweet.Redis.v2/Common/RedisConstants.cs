@@ -31,6 +31,10 @@ namespace Sweet.Redis.v2
     {
         #region Static Members
 
+        public static readonly byte[] OK_BYTES = "OK".ToBytes();
+        public static readonly byte[] PONG_BYTES_UPPER = "PONG".ToBytes();
+        public static readonly byte[] PONG_BYTES_LOWER = "pong".ToBytes();
+
         public static readonly byte[] EmptyBytes = new byte[0];
         public static readonly byte[] LineEnd = CRLF.ToBytes();
 
@@ -224,7 +228,7 @@ namespace Sweet.Redis.v2
         public const int MaxBulkSendFactor = 50000;
         public const int DefaultBulkSendFactor = 50;
 
-        public const int DefaultHeartBeatIntervalSecs = 3;
+        public const int DefaultHeartBeatIntervalSecs = 5;
         public const int MinHeartBeatIntervalSecs = 2;
         public const int MaxHeartBeatIntervalSecs = 120;
 

@@ -530,6 +530,32 @@ namespace Sweet.Redis.v2
             return true;
         }
 
+        protected override bool ProcessPingResponse(RedisResult response)
+        {
+            var arr = response as RedisArray;
+            if (!ReferenceEquals(arr, null))
+            {
+                var items = arr.Value;
+                if (items != null && items.Count == 2)
+                {
+                    var item = items[1] as RedisBytes;
+                    if ((ReferenceEquals(item, null) || item.Value.IsEmpty()))
+                    {
+                        item = items[0] as RedisBytes;
+                        if (!ReferenceEquals(item, null))
+                            return (item.Value.EqualTo(RedisConstants.PONG_BYTES_LOWER) ||
+                                item.Value.EqualTo(RedisConstants.PONG_BYTES_UPPER));
+                    }
+                }
+            }
+
+            var result = response as RedisString;
+            if (!ReferenceEquals(result, null))
+                return (result as RedisString) == RedisConstants.PONG; ;
+
+            return false;
+        }
+
         #endregion Base Methods
 
         #endregion Methods
