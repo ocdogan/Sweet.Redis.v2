@@ -287,13 +287,12 @@ namespace Sweet.Redis.v2
                         var endPoint = node.EndPoint;
                         if (!endPoint.IsEmpty())
                         {
-                            var role = node.Role;
                             var messageType = (status.NewStatus == RedisCardioProbeStatus.OK) ?
                                                     RedisSentinelMessageType.SubjectivelyUp :
                                                     RedisSentinelMessageType.SubjectivelyDown;
 
                             var message = new RedisSentinelMessage(messageType, m_MasterName,
-                                                                   new RedisNodeInfo(endPoint, role),
+                                                                   new RedisNodeInfo(endPoint, node.Role),
                                                                    RedisNodeInfo.Empty);
 
                             ProcessSentinelMessage(message);

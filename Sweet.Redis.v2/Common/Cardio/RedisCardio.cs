@@ -39,8 +39,8 @@ namespace Sweet.Redis.v2
 
             private int m_PulseState;
 
-            private long m_FailCount;
-            private long m_SuccessCount;
+            private int m_FailCount;
+            private int m_SuccessCount;
 
             private RedisCardioProbeStatus m_Status = RedisCardioProbeStatus.OK;
 
@@ -80,7 +80,7 @@ namespace Sweet.Redis.v2
 
             #region Properties
 
-            public long FailCount
+            public int FailCount
             {
                 get { return m_FailCount; }
             }
@@ -102,12 +102,12 @@ namespace Sweet.Redis.v2
                 set
                 {
                     SetCounters(value);
-                    if (CanSetStatus(value))
+                    if (m_Status != value && CanSetStatus(value))
                         m_Status = value;
                 }
             }
 
-            public long SuccessCount
+            public int SuccessCount
             {
                 get { return m_SuccessCount; }
             }
@@ -126,15 +126,15 @@ namespace Sweet.Redis.v2
             {
                 if (status == RedisCardioProbeStatus.OK)
                 {
-                    Interlocked.Exchange(ref m_FailCount, RedisConstants.Zero);
-                    if (m_SuccessCount < long.MaxValue)
-                        Interlocked.Add(ref m_SuccessCount, RedisConstants.One);
+                    Interlocked.Exchange(ref m_FailCount, 0);
+                    if (m_SuccessCount < int.MaxValue)
+                        Interlocked.Add(ref m_SuccessCount, 1);
                 }
                 else
                 {
-                    Interlocked.Exchange(ref m_SuccessCount, RedisConstants.Zero);
-                    if (m_FailCount < long.MaxValue)
-                        Interlocked.Add(ref m_FailCount, RedisConstants.One);
+                    Interlocked.Exchange(ref m_SuccessCount, 0);
+                    if (m_FailCount < int.MaxValue)
+                        Interlocked.Add(ref m_FailCount, 1);
                 }
             }
 

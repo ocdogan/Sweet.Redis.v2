@@ -64,6 +64,8 @@ namespace Sweet.Redis.v2
         protected Stream m_OutStream;
 
         private Socket m_Socket;
+        private readonly object m_SocketLock = new object();
+
         private IPEndPoint m_EndPoint;
         private RedisBufferParser m_Parser;
 
@@ -75,7 +77,7 @@ namespace Sweet.Redis.v2
         private int m_Offset;
         private int m_CurrentPos;
 
-        private long m_ReadCount;
+        private int m_ReadCount;
         private int m_ConnectionStatus = RedisAsyncClientStatus.Idle;
 
         private int m_SendTimeout;
@@ -105,9 +107,6 @@ namespace Sweet.Redis.v2
             m_Buffer = new byte[capacity];
 
             m_Parser = new RedisBufferParser();
-            m_Socket = new RedisNativeSocket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-            Configure(m_Socket);
         }
 
         #endregion .Ctors
@@ -117,11 +116,11 @@ namespace Sweet.Redis.v2
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
-            using (var socket = Interlocked.Exchange(ref m_Socket, null))
+            using (Interlocked.Exchange(ref m_Socket, null))
             {
                 try
                 {
-                    Interlocked.Exchange(ref m_ReadCount, RedisConstants.Zero);
+                    Interlocked.Exchange(ref m_ReadCount, 0);
                     Interlocked.Exchange(ref m_ConnectionStatus, RedisAsyncClientStatus.Idle);
 
                     OnCloseSocket();
@@ -176,11 +175,11 @@ namespace Sweet.Redis.v2
         {
             get
             {
-                return m_ReadCount > RedisConstants.Zero;
+                return m_ReadCount > 0;
             }
         }
 
-        public long ReadCount
+        public int ReadCount
         {
             get
             {
@@ -271,8 +270,7 @@ namespace Sweet.Redis.v2
             {
                 lock (m_BufferLock)
                 {
-                    return (m_ReadCount == RedisConstants.Zero &&
-                            !m_ReceiveWaitingQ.IsEmpty);
+                    return (m_ReadCount == 0 && !m_ReceiveWaitingQ.IsEmpty);
                 }
             }
         }
@@ -335,6 +333,26 @@ namespace Sweet.Redis.v2
 
         #region Connect
 
+        private Socket GetNativeSocket()
+        {
+            var result = m_Socket;
+            if (result == null)
+            {
+                lock (m_SocketLock)
+                {
+                    result = m_Socket;
+                    if (result == null)
+                    {
+                        result = new RedisNativeSocket(m_EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                        Configure(result);
+
+                        m_Socket = result;
+                    }
+                }
+            }
+            return result;
+        }
+
         private void CloseStreams()
         {
             SwitchStream(ref m_OutStream, null);
@@ -376,7 +394,7 @@ namespace Sweet.Redis.v2
                 catch (Exception)
                 { }
 
-                Interlocked.Exchange(ref socket.m_ReadCount, RedisConstants.Zero);
+                Interlocked.Exchange(ref socket.m_ReadCount, 0);
                 if (!nativeSocket.IsConnected())
                 {
                     Interlocked.Exchange(ref socket.m_ConnectionStatus, RedisAsyncClientStatus.Idle);
@@ -449,7 +467,7 @@ namespace Sweet.Redis.v2
                             {
                                 try
                                 {
-                                    var socket = m_Socket;
+                                    var socket = GetNativeSocket();
                                     if (socket != null)
                                     {
                                         var tcs = new TaskCompletionSource<bool>();
@@ -488,7 +506,7 @@ namespace Sweet.Redis.v2
             var socket = tuple.Item1;
             try
             {
-                Interlocked.Exchange(ref socket.m_ReadCount, RedisConstants.Zero);
+                Interlocked.Exchange(ref socket.m_ReadCount, 0);
 
                 var nativeSocket = tuple.Item2;
                 try
@@ -760,7 +778,7 @@ namespace Sweet.Redis.v2
             catch (Exception) { }
             finally
             {
-                Interlocked.Add(ref socket.m_ReadCount, RedisConstants.MinusOne);
+                Interlocked.Add(ref socket.m_ReadCount, -1);
             }
         };
 
@@ -768,10 +786,10 @@ namespace Sweet.Redis.v2
         {
             if (!Disposed)
             {
-                var readCount = Interlocked.Add(ref m_ReadCount, RedisConstants.One);
+                var readCount = Interlocked.Add(ref m_ReadCount, 1);
                 if (readCount > RedisConstants.One)
                 {
-                    Interlocked.Add(ref m_ReadCount, RedisConstants.MinusOne);
+                    Interlocked.Add(ref m_ReadCount, -1);
                     return;
                 }
 
@@ -799,7 +817,7 @@ namespace Sweet.Redis.v2
             }
             finally
             {
-                Interlocked.Add(ref tuple.Item1.m_ReadCount, RedisConstants.MinusOne);
+                Interlocked.Add(ref tuple.Item1.m_ReadCount, -1);
             }
         };
 
@@ -892,7 +910,7 @@ namespace Sweet.Redis.v2
             if (Disposed)
                 return;
 
-            Interlocked.Add(ref m_ReadCount, RedisConstants.One);
+            Interlocked.Add(ref m_ReadCount, 1);
             try
             {
                 var stream = m_NetStream;
@@ -902,7 +920,7 @@ namespace Sweet.Redis.v2
                     stream = m_NetStream;
                 }
 
-                var socket = m_Socket;
+                var socket = GetNativeSocket();
                 do
                 {
                     // Get available
@@ -912,12 +930,12 @@ namespace Sweet.Redis.v2
                         EnsureCapacity();
                         try
                         {
-                            Interlocked.Add(ref m_ReadCount, RedisConstants.One);
+                            Interlocked.Add(ref m_ReadCount, 1);
                             stream.BeginRead(m_Buffer, m_CurrentPos, (m_Capacity - m_CurrentPos) /* AvailableCapacity */, BeginReadCallback, Tuple.Create(this, stream));
                         }
                         catch (Exception)
                         {
-                            Interlocked.Add(ref m_ReadCount, RedisConstants.MinusOne);
+                            Interlocked.Add(ref m_ReadCount, -1);
                             throw;
                         }
                         return;
@@ -942,7 +960,7 @@ namespace Sweet.Redis.v2
             }
             finally
             {
-                Interlocked.Add(ref m_ReadCount, RedisConstants.MinusOne);
+                Interlocked.Add(ref m_ReadCount, -1);
             }
         }
 

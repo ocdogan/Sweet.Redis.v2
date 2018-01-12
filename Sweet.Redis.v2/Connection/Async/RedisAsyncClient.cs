@@ -86,7 +86,7 @@ namespace Sweet.Redis.v2
             m_ReceiveTimeout = settings.ReceiveTimeout;
             m_UseBackgroundThread = settings.UseBackgroundThread;
 
-            Initialize();
+            Initialize(true, false);
             m_Constructed = true;
         }
 
@@ -394,9 +394,11 @@ namespace Sweet.Redis.v2
             }
         }
 
-        private void Initialize()
+        private bool Initialize(bool ctorCall, bool throwException = true)
         {
             ValidateNotDisposed();
+
+            var success = false;
             try
             {
                 lock (m_Lock)
@@ -431,12 +433,19 @@ namespace Sweet.Redis.v2
 
                     DoAfterInit();
                 }
+                success = true;
+            }
+            catch (Exception)
+            {
+                if (throwException)
+                    throw;
             }
             finally
             {
-                if (UseBackgroundThread)
+                if ((success || !ctorCall) && UseBackgroundThread)
                     InitBackgroundThread();
             }
+            return success;
         }
 
         protected virtual void DoAfterInit()
@@ -780,9 +789,10 @@ namespace Sweet.Redis.v2
                     var socket = m_Socket;
                     if (socket == null || !socket.Connected)
                     {
-                        Initialize();
+                        if (!Initialize(false, false))
+                            socket = null;
+                        else socket = m_Socket;
 
-                        socket = m_Socket;
                         if (socket == null || !socket.Connected)
                         {
                             CancelAllSendQ();
@@ -845,8 +855,9 @@ namespace Sweet.Redis.v2
                                 if ((e is SocketException) ||
                                     (e is IOException))
                                 {
-                                    Initialize();
-                                    socket = m_Socket;
+                                    if (!Initialize(false, false))
+                                        socket = null;
+                                    else socket = m_Socket;
                                 }
                             }
                         }
@@ -859,8 +870,7 @@ namespace Sweet.Redis.v2
                 if (!(Disposed || m_SendWaitingQ.IsEmpty))
                 {
                     // If is async call and not running in background thread
-                    isAsync = isAsync && !UseBackgroundThread;
-                    TrySendQ(isAsync);
+                    TrySendQ(isAsync && !UseBackgroundThread);
                 }
             }
         }
@@ -900,8 +910,9 @@ namespace Sweet.Redis.v2
             var socket = m_Socket;
             if (socket == null || !socket.Connected)
             {
-                Initialize();
-                socket = m_Socket;
+                if (!Initialize(false))
+                    socket = null;
+                else socket = m_Socket;
             }
             return (socket != null && socket.Connected) ? socket : null;
         }
