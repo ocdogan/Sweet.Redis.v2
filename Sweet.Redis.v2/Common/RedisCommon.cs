@@ -40,7 +40,6 @@ namespace Sweet.Redis.v2
         private static bool? s_IsWinPlatform;
         private static bool? s_IsLinuxPlatform;
 
-        private static readonly uint[] DefaultCRC32Vector;
         private static readonly DateTime UnixBaseTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
         private static readonly byte Minus = (byte)'-';
@@ -60,10 +59,6 @@ namespace Sweet.Redis.v2
         #endregion Static Members
 
         #region Constants
-
-        private const uint CrcPoly = 0xedb88320;
-        private const uint CrcInit = 0xffffffff;
-        private const int CRC32TableLength = 256;
 
         private const byte CharMinus = (byte)'-';
         private const byte CharZero = (byte)'0';
@@ -124,71 +119,7 @@ namespace Sweet.Redis.v2
 
         #endregion Properties
 
-        #region .Ctors
-
-        static RedisCommon()
-        {
-            DefaultCRC32Vector = CalculateCRC32Vector();
-        }
-
-        #endregion .Ctors
-
         #region Methods
-
-        #region CRC32
-
-        public static uint CRC32ChecksumOf(byte[] bytes)
-        {
-            if (bytes != null)
-            {
-                var vector = NewCRC32Vector();
-                var bytesLength = bytes.Length;
-
-                var crc = CrcInit;
-                for (var i = 0; i < bytesLength; ++i)
-                {
-                    var index = (byte)(((crc) & 0xff) ^ bytes[i]);
-                    crc = (uint)((crc >> 8) ^ vector[index]);
-                }
-                return ~crc;
-            }
-            return 0u;
-        }
-
-
-        public static byte[] CRC32ChecksumBytesOf(byte[] bytes)
-        {
-            return BitConverter.GetBytes(CRC32ChecksumOf(bytes));
-        }
-
-        private static uint[] NewCRC32Vector()
-        {
-            var result = new uint[CRC32TableLength];
-            Array.Copy(DefaultCRC32Vector, result, CRC32TableLength);
-            return result;
-        }
-
-        private static uint[] CalculateCRC32Vector()
-        {
-            var result = new uint[CRC32TableLength];
-
-            var crcItem = 0u;
-            for (var i = 0u; i < CRC32TableLength; ++i)
-            {
-                crcItem = i;
-                for (var j = 8; j > 0; --j)
-                {
-                    if ((crcItem & 1) == 1)
-                        crcItem = (uint)((crcItem >> 1) ^ CrcPoly);
-                    else
-                        crcItem >>= 1;
-                }
-                result[i] = crcItem;
-            }
-            return result;
-        }
-
-        #endregion CRC32
 
         #region Parse
 

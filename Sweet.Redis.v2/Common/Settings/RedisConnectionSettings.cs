@@ -81,24 +81,24 @@ namespace Sweet.Redis.v2
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
-            : this(new[] { new RedisEndPoint(host, port) }, 
-                masterName, 
-                password, 
-                clientName, 
+            : this(new[] { new RedisEndPoint(host, port) },
+                masterName,
+                password,
+                clientName,
                 connectionCount,
-                connectionTimeout, 
+                connectionTimeout,
                 receiveTimeout,
-                sendTimeout, 
-                connectionWaitTimeout, 
-                readBufferSize, 
-                writeBufferSize, 
-                heartBeatEnabled, 
+                sendTimeout,
+                connectionWaitTimeout,
+                readBufferSize,
+                writeBufferSize,
+                heartBeatEnabled,
                 hearBeatIntervalInSecs,
-                bulkSendFactor, 
-                useBackgroundThread, 
-                throwOnError, 
-                useSsl, 
-                sslCertificateSelection, 
+                bulkSendFactor,
+                useBackgroundThread,
+                throwOnError,
+                useSsl,
+                sslCertificateSelection,
                 sslCertificateValidation)
         { }
 
@@ -121,24 +121,24 @@ namespace Sweet.Redis.v2
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
-            : this(ToEndPointList(endPoints), 
-                masterName, 
-                password, 
-                clientName, 
+            : this(ToEndPointList(endPoints),
+                masterName,
+                password,
+                clientName,
                 connectionCount,
-                connectionTimeout, 
+                connectionTimeout,
                 receiveTimeout,
-                sendTimeout, 
-                connectionWaitTimeout, 
-                readBufferSize, 
-                writeBufferSize, 
-                heartBeatEnabled, 
+                sendTimeout,
+                connectionWaitTimeout,
+                readBufferSize,
+                writeBufferSize,
+                heartBeatEnabled,
                 hearBeatIntervalInSecs,
-                bulkSendFactor, 
-                useBackgroundThread, 
-                throwOnError, 
-                useSsl, 
-                sslCertificateSelection, 
+                bulkSendFactor,
+                useBackgroundThread,
+                throwOnError,
+                useSsl,
+                sslCertificateSelection,
                 sslCertificateValidation)
         { }
 
@@ -187,12 +187,12 @@ namespace Sweet.Redis.v2
 
         #region Properties
 
-        public int BulkSendFactor 
+        public int BulkSendFactor
         {
             get { return m_BulkSendFactor; }
-            private set 
-            { 
-                m_BulkSendFactor = (value < 1 ? RedisConstants.DefaultBulkSendFactor : Math.Min(value, RedisConstants.MaxBulkSendFactor)); 
+            private set
+            {
+                m_BulkSendFactor = (value < 1 ? RedisConstants.DefaultBulkSendFactor : Math.Min(value, RedisConstants.MaxBulkSendFactor));
             }
         }
 
@@ -303,7 +303,7 @@ namespace Sweet.Redis.v2
         public virtual uint GetCRCHashCode()
         {
             if (!m_CRCHash.HasValue)
-                m_CRCHash = RedisCommon.CRC32ChecksumOf(ToString().ToBytes());
+                m_CRCHash = RedisCRC32.CRC32(ToString().ToBytes());
             return m_CRCHash.Value;
         }
 
