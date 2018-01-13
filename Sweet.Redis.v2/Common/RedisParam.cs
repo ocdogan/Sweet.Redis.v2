@@ -170,6 +170,11 @@ namespace Sweet.Redis.v2
 
         #region Overrides
 
+        public int GetHashSlot()
+        {
+            return RedisCRC16.CRC16(m_Data) % 16384;
+        }
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(obj, null))
