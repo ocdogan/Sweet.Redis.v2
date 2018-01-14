@@ -36,8 +36,8 @@ namespace Sweet.Redis.v2
 
         #region Constants
 
-        private const uint CrcPoly = 0xedb88320;
-        private const uint CrcInit = 0xffffffff;
+        private const uint CrcPoly = 0xEDB88320;
+        private const uint CrcInit = 0xFFFFFFFF;
         private const int CRC32TableLength = 256;
 
         #endregion Constants
@@ -64,7 +64,7 @@ namespace Sweet.Redis.v2
 
                     var result = CrcInit;
                     for (var i = 0; i < bytesLength; ++i)
-                        result = (uint)((result >> 8) ^ vector[(byte)(((result) & 0xff) ^ bytes[i])]);
+                        result = (uint)((result >> 8) ^ vector[(byte)(((result) & 0xFF) ^ bytes[i])]);
                     return ~result;
                 }
             }
