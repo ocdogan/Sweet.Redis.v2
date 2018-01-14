@@ -37,6 +37,7 @@ namespace Sweet.Redis.v2
 
         #region Field Members
 
+        private int? m_Slot;
         private byte[] m_Data;
 
         #endregion Field Members
@@ -172,31 +173,35 @@ namespace Sweet.Redis.v2
 
         public int GetSlot()
         {
-            if (m_Data != null)
+            if (!m_Slot.HasValue)
             {
-                var length = m_Data.Length;
-                if (length > 0)
+                if (m_Data != null)
                 {
-                    var start = -1;
-                    var end = -1;
-
-                    for (var i = 0; i < length; i++)
+                    var length = m_Data.Length;
+                    if (length > 0)
                     {
-                        if (i == '{' && start == -1)
-                            start = i;
-                        else if (i == '}' && start > -1)
-                        {
-                            end = i;
-                            break;
-                        }
-                    }
+                        var start = -1;
+                        var end = -1;
 
-                    if (start > -1 && end > -1 && end > start + 1)
-                        return RedisCRC16.CRC16(m_Data, start + 1, end - start - 1) % 16384;
-                    return RedisCRC16.CRC16(m_Data) % 16384;
+                        for (var i = 0; i < length; i++)
+                        {
+                            if (i == '{' && start == -1)
+                                start = i;
+                            else if (i == '}' && start > -1)
+                            {
+                                end = i;
+                                break;
+                            }
+                        }
+
+                        if (start > -1 && end > -1 && end > start + 1)
+                            m_Slot = RedisCRC16.CRC16(m_Data, start + 1, end - start - 1) % 16384;
+                        else m_Slot = RedisCRC16.CRC16(m_Data) % 16384;
+                    }
                 }
+                m_Slot = 0;
             }
-            return 0;
+            return m_Slot.Value;
         }
 
         public override bool Equals(object obj)
