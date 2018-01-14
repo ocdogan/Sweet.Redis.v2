@@ -57,20 +57,51 @@ namespace Sweet.Redis.v2
         {
             if (bytes != null)
             {
-                var vector = NewCRC32Vector();
                 var bytesLength = bytes.Length;
-
-                var crc = CrcInit;
-                for (var i = 0; i < bytesLength; ++i)
+                if (bytesLength > 0)
                 {
-                    var index = (byte)(((crc) & 0xff) ^ bytes[i]);
-                    crc = (uint)((crc >> 8) ^ vector[index]);
+                    var vector = NewCRC32Vector();
+
+                    var result = CrcInit;
+                    for (var i = 0; i < bytesLength; ++i)
+                        result = (uint)((result >> 8) ^ vector[(byte)(((result) & 0xff) ^ bytes[i])]);
+                    return ~result;
                 }
-                return ~crc;
             }
             return 0u;
         }
 
+        public static uint CRC32(byte[] bytes, int index, int length)
+        {
+            if (bytes != null)
+            {
+                if (index < 0 || length < 0)
+                    throw new RedisFatalException("Invalid hash key parameter");
+
+                var end = index + length;
+                var bytesLength = bytes.Length;
+
+                if (end > bytesLength)
+                    throw new RedisFatalException("Invalid hash key parameter");
+
+                if (bytesLength > 0)
+                {
+                    if (index > bytesLength - 1)
+                        throw new RedisFatalException("Invalid hash key parameter");
+
+                    if (length > 0)
+                    {
+                        var vector = NewCRC32Vector();
+
+                        var result = CrcInit;
+                        for (var i = index; i < end; ++i)
+                            result = (uint)((result >> 8) ^ vector[(byte)(((result) & 0xff) ^ bytes[i])]);
+                        return ~result;
+                    }
+                }
+            }
+            return 0u;
+        }
 
         public static byte[] CRC32BytesOf(byte[] bytes)
         {

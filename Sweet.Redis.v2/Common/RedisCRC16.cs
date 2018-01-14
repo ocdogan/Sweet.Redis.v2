@@ -94,14 +94,48 @@ namespace Sweet.Redis.v2
 
         public static int CRC16(byte[] bytes)
         {
-            var result = (UInt16)0;
             if (bytes != null)
             {
-                var length = bytes.Length;
-                for (var i = 0; i < length; i++)
-                    result = (ushort)((result << 8) ^ CRC16Table[((result >> 8) ^ bytes[i]) & 0x00FF]);
+                var bytesLength = bytes.Length;
+                if (bytesLength > 0)
+                {
+                    var result = (UInt16)0;
+                    for (var i = 0; i < bytesLength; i++)
+                        result = (ushort)((result << 8) ^ CRC16Table[((result >> 8) ^ bytes[i]) & 0x00FF]);
+                    return result;
+                }
             }
-            return (int)result;
+            return 0;
+        }
+
+        public static int CRC16(byte[] bytes, int index, int length)
+        {
+            if (bytes != null)
+            {
+                if (index < 0 || length < 0)
+                    throw new RedisFatalException("Invalid hash key parameter");
+
+                var end = index + length;
+                var bytesLength = bytes.Length;
+
+                if (end > bytesLength)
+                    throw new RedisFatalException("Invalid hash key parameter");
+
+                if (bytesLength > 0)
+                {
+                    if (index > bytesLength - 1)
+                        throw new RedisFatalException("Invalid hash key parameter");
+
+                    if (length > 0)
+                    {
+                        var result = (UInt16)0;
+                        for (var i = index; i < end; i++)
+                            result = (ushort)((result << 8) ^ CRC16Table[((result >> 8) ^ bytes[i]) & 0x00FF]);
+                        return result;
+                    }
+                }
+            }
+            return 0;
         }
     }
 }
