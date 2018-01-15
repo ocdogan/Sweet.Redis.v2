@@ -77,7 +77,6 @@ namespace Sweet.Redis.v2
             int hearBeatIntervalInSecs = RedisConstants.DefaultHeartBeatIntervalSecs,
             int bulkSendFactor = RedisConstants.DefaultBulkSendFactor,
             bool useBackgroundThread = false,
-            bool throwOnError = true,
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
@@ -96,7 +95,6 @@ namespace Sweet.Redis.v2
                 hearBeatIntervalInSecs,
                 bulkSendFactor,
                 useBackgroundThread,
-                throwOnError,
                 useSsl,
                 sslCertificateSelection,
                 sslCertificateValidation)
@@ -117,7 +115,6 @@ namespace Sweet.Redis.v2
             int hearBeatIntervalInSecs = RedisConstants.DefaultHeartBeatIntervalSecs,
             int bulkSendFactor = RedisConstants.DefaultBulkSendFactor,
             bool useBackgroundThread = false,
-            bool throwOnError = true,
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
@@ -136,7 +133,6 @@ namespace Sweet.Redis.v2
                 hearBeatIntervalInSecs,
                 bulkSendFactor,
                 useBackgroundThread,
-                throwOnError,
                 useSsl,
                 sslCertificateSelection,
                 sslCertificateValidation)
@@ -157,7 +153,6 @@ namespace Sweet.Redis.v2
             int hearBeatIntervalInSecs = RedisConstants.DefaultHeartBeatIntervalSecs,
             int bulkSendFactor = RedisConstants.DefaultBulkSendFactor,
             bool useBackgroundThread = false,
-            bool throwOnError = true,
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
@@ -167,7 +162,6 @@ namespace Sweet.Redis.v2
             Password = password;
             ClientName = clientName;
             MasterName = masterName;
-            ThrowOnError = throwOnError;
             SslCertificateSelection = sslCertificateSelection;
             SslCertificateValidation = sslCertificateValidation;
             BulkSendFactor = bulkSendFactor;
@@ -281,8 +275,6 @@ namespace Sweet.Redis.v2
 
         public RemoteCertificateValidationCallback SslCertificateValidation { get; private set; }
 
-        public bool ThrowOnError { get; private set; }
-
         public int WriteBufferSize
         {
             get { return m_WriteBufferSize; }
@@ -336,7 +328,6 @@ namespace Sweet.Redis.v2
                             hearBeatIntervalInSecs: HearBeatIntervalInSecs,
                             bulkSendFactor: BulkSendFactor,
                             useBackgroundThread: UseBackgroundThread,
-                            throwOnError: ThrowOnError,
                             useSsl: UseSsl,
                             sslCertificateSelection: SslCertificateSelection,
                             sslCertificateValidation: SslCertificateValidation);
@@ -472,13 +463,6 @@ namespace Sweet.Redis.v2
             {
                 sBuilder.Append("useBackgroundThread=");
                 sBuilder.Append(UseBackgroundThread);
-                sBuilder.Append(';');
-            }
-
-            if (ThrowOnError)
-            {
-                sBuilder.Append("throwOnError=");
-                sBuilder.Append(ThrowOnError);
                 sBuilder.Append(';');
             }
 
@@ -621,9 +605,6 @@ namespace Sweet.Redis.v2
                     case "usebackgroundthread":
                         UseBackgroundThread = (bool)kv.Value;
                         break;
-                    case "throwonerror":
-                        ThrowOnError = (bool)kv.Value;
-                        break;
                     case "usessl":
                         UseSsl = (bool)kv.Value;
                         break;
@@ -650,7 +631,6 @@ namespace Sweet.Redis.v2
                 { "heartbeatenabled", true },
                 { "hearbeatintervalinsecs", RedisConstants.DefaultHeartBeatIntervalSecs },
                 { "bulksendfactor", RedisConstants.DefaultBulkSendFactor },
-                { "throwonerror", true },
                 { "usessl", false }
             };
         }
@@ -681,7 +661,6 @@ namespace Sweet.Redis.v2
                     settings[key] = int.Parse(value);
                     break;
                 case "heartbeatenabled":
-                case "throwonerror":
                 case "usebackgroundthread":
                 case "usessl":
                     settings[key] = bool.Parse(value);

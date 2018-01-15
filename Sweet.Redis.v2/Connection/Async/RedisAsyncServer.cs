@@ -247,13 +247,13 @@ namespace Sweet.Redis.v2
         public IRedisAdmin GetAdmin()
         {
             ValidateNotDisposed();
-            return new RedisAdmin(GetClient(), RedisConstants.UninitializedDbIndex, m_Settings.ThrowOnError);
+            return new RedisAdmin(GetClient(), RedisConstants.UninitializedDbIndex);
         }
 
         public IRedisDb GetDb(int dbIndex = 0)
         {
             ValidateNotDisposed();
-            return new RedisDb(GetClient(), dbIndex, m_Settings.ThrowOnError);
+            return new RedisDb(GetClient(), dbIndex);
         }
 
         #region Batch
@@ -276,13 +276,13 @@ namespace Sweet.Redis.v2
         public IRedisTransaction BeginTransaction(int dbIndex = 0)
         {
             ValidateNotDisposed();
-            return new RedisTransaction(GetTransactionalClient(), dbIndex, m_Settings.ThrowOnError);
+            return new RedisTransaction(GetTransactionalClient(), dbIndex);
         }
 
         public IRedisPipeline CreatePipeline(int dbIndex = 0)
         {
             ValidateNotDisposed();
-            return new RedisPipeline(GetClient(), dbIndex, m_Settings.ThrowOnError);
+            return new RedisPipeline(GetClient(), dbIndex);
         }
 
         #endregion Batch

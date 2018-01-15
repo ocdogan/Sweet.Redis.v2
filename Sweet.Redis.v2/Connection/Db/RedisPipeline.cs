@@ -33,8 +33,8 @@ namespace Sweet.Redis.v2
     {
         #region .Ctors
 
-        public RedisPipeline(RedisAsyncClient asyncClient, int dbIndex, bool throwOnError = true)
-            : base(asyncClient, dbIndex, throwOnError)
+        public RedisPipeline(RedisAsyncClient asyncClient, int dbIndex)
+            : base(asyncClient, dbIndex)
         { }
 
         #endregion .Ctors

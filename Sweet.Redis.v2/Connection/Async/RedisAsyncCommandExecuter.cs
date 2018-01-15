@@ -41,10 +41,9 @@ namespace Sweet.Redis.v2
 
         #region .Ctors
 
-        public RedisAsyncCommandExecuter(RedisAsyncClient asyncClient, int dbIndex, bool throwOnError = true)
+        public RedisAsyncCommandExecuter(RedisAsyncClient asyncClient, int dbIndex)
         {
             m_AsyncClient = asyncClient;
-            ThrowOnError = throwOnError;
             m_DbIndex = Math.Min(Math.Max(dbIndex, RedisConstants.UninitializedDbIndex), RedisConstants.MaxDbIndex);
         }
 
@@ -81,8 +80,6 @@ namespace Sweet.Redis.v2
         {
             get { return RedisRole.Undefined; }
         }
-
-        public bool ThrowOnError { get; private set; }
 
         #endregion Properties
 

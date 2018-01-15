@@ -68,7 +68,6 @@ namespace Sweet.Redis.v2
         private bool m_Constructed;
         private long m_ThreadRunning;
         private Thread m_BackgroundThread;
-        private bool m_ThrowOnError = true;
         private int m_ReceiveTimeout = RedisConstants.DefaultReceiveTimeout;
 
         private RedisRole m_ServerRole;
@@ -82,7 +81,6 @@ namespace Sweet.Redis.v2
         public RedisAsyncClient(RedisConnectionSettings settings)
         {
             m_Settings = settings;
-            m_ThrowOnError = settings.ThrowOnError;
             m_ReceiveTimeout = settings.ReceiveTimeout;
             m_UseBackgroundThread = settings.UseBackgroundThread;
 
@@ -225,11 +223,6 @@ namespace Sweet.Redis.v2
         public RedisConnectionSettings Settings
         {
             get { return m_Settings; }
-        }
-
-        public virtual bool ThrowOnError
-        {
-            get { return m_ThrowOnError; }
         }
 
         protected internal virtual bool UseBackgroundThread

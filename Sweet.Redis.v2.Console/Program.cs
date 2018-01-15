@@ -32,11 +32,11 @@ namespace Sweet.Redis.v2
             {
                 Console.Clear();
 
-                // UnitTests();
+                UnitTests();
 
                 // PerformancePingTests();
                 // PerformanceGetTinyTests();
-                PerformancePipeTests();
+                // PerformancePipeTests();
                 // PerformanceManagerGetTinyTests();
 
                 // MonitorTest1();
@@ -2224,6 +2224,9 @@ namespace Sweet.Redis.v2
 
             results = UnitTestSyncGetTinyPipelineFail(false);
             WriteResult(results[0]);
+
+            results = UnitTestSyncError(false);
+            WriteResult(results[0]);
         }
 
         static TestResult[] UnitTestSyncGetTinyPipeline(bool continuous)
@@ -2308,6 +2311,16 @@ namespace Sweet.Redis.v2
 
                 return data1 == "xx1" && data2 == "xx2" && data3 == "xx3" && data4 == "xx4" && data5 == "xx5" && data6 == "xx5";
             }, 11);
+        }
+
+        static TestResult[] UnitTestSyncError(bool continuous)
+        {
+            return SimpleTestBase("UnitTestSyncError", 1, continuous,
+                (db) =>
+                {
+                    var result = db.Strings.Set("key123", "");
+                    return result;
+                });
         }
 
         static TestResult[] UnitTestSyncGetTiny(bool continuous)

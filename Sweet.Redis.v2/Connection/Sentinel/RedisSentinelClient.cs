@@ -35,7 +35,6 @@ namespace Sweet.Redis.v2
         private IRedisCommandsSentinel m_Commands;
         private RedisAsyncCommandExecuter m_Executer;
 
-        private bool m_ThrowOnError;
         private long m_Id = RedisIDGenerator<RedisSentinelClient>.NextId();
 
         #endregion Field Members
@@ -48,8 +47,7 @@ namespace Sweet.Redis.v2
                 throw new RedisFatalException(new ArgumentNullException("client"), RedisErrorCode.MissingParameter);
 
             m_Client = client.Disposed ? new RedisAsyncClient(client.Settings) : client;
-            m_ThrowOnError = m_Client.Settings.ThrowOnError;
-            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
+            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex);
         }
 
         public RedisSentinelClient(RedisSentinelSettings settings)
@@ -58,9 +56,8 @@ namespace Sweet.Redis.v2
             if (settings == null)
                 throw new RedisFatalException(new ArgumentNullException("settings"), RedisErrorCode.MissingParameter);
 
-            m_ThrowOnError = settings.ThrowOnError;
             m_Client = new RedisAsyncClient(settings);
-            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
+            m_Executer = new RedisAsyncCommandExecuter(m_Client, RedisConstants.UninitializedDbIndex);
         }
 
         #endregion .Ctors
@@ -103,11 +100,6 @@ namespace Sweet.Redis.v2
         public long Id
         {
             get { return m_Id; }
-        }
-
-        public bool ThrowOnError
-        {
-            get { return m_ThrowOnError; }
         }
 
         #endregion Properties

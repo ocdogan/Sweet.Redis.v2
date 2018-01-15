@@ -27,8 +27,6 @@ namespace Sweet.Redis.v2
     public interface IRedisClient : IRedisIdentifiedObject
     {
         int DbIndex { get; }
-        bool ThrowOnError { get; }
-
         void ValidateNotDisposed();
     }
 }

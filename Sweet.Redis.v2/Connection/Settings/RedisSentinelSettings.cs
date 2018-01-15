@@ -61,13 +61,12 @@ namespace Sweet.Redis.v2
             int hearBeatIntervalInSecs = RedisConstants.DefaultHeartBeatIntervalSecs,
             int bulkSendFactor = RedisConstants.DefaultBulkSendFactor,
             bool useBackgroundThread = false,
-            bool throwOnError = true,
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
             : this(new[] { new RedisEndPoint(host, port) }, masterName, password, clientName, connectionCount, connectionTimeout, 
                 receiveTimeout, sendTimeout, connectionWaitTimeout, readBufferSize, writeBufferSize, heartBeatEnabled, hearBeatIntervalInSecs,
-                bulkSendFactor, useBackgroundThread, throwOnError, useSsl, sslCertificateSelection, sslCertificateValidation)
+                bulkSendFactor, useBackgroundThread, useSsl, sslCertificateSelection, sslCertificateValidation)
         { }
 
         public RedisSentinelSettings(HashSet<RedisEndPoint> endPoints,
@@ -85,14 +84,12 @@ namespace Sweet.Redis.v2
             int hearBeatIntervalInSecs = RedisConstants.DefaultHeartBeatIntervalSecs,
             int bulkSendFactor = RedisConstants.DefaultBulkSendFactor,
             bool useBackgroundThread = false,
-            bool throwOnError = true,
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
             : this(ToEndPointList(endPoints, RedisConstants.DefaultSentinelPort), masterName, password, clientName, connectionCount, 
                 connectionTimeout, receiveTimeout, sendTimeout, connectionWaitTimeout, readBufferSize, writeBufferSize,
-                heartBeatEnabled, hearBeatIntervalInSecs, bulkSendFactor, useBackgroundThread, throwOnError, 
-                useSsl, sslCertificateSelection, sslCertificateValidation)
+                heartBeatEnabled, hearBeatIntervalInSecs, bulkSendFactor, useBackgroundThread, useSsl, sslCertificateSelection, sslCertificateValidation)
         { }
 
         public RedisSentinelSettings(RedisEndPoint[] endPoints = null,
@@ -110,14 +107,13 @@ namespace Sweet.Redis.v2
             int hearBeatIntervalInSecs = RedisConstants.DefaultHeartBeatIntervalSecs,
             int bulkSendFactor = RedisConstants.DefaultBulkSendFactor,
             bool useBackgroundThread = false,
-            bool throwOnError = true,
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
             : base(!endPoints.IsEmpty() ? endPoints : new[] { new RedisEndPoint(RedisConstants.LocalHost, RedisConstants.DefaultPort) },
                    masterName, password, clientName, connectionCount, connectionTimeout, receiveTimeout, sendTimeout,
                    connectionWaitTimeout, readBufferSize, writeBufferSize, heartBeatEnabled, hearBeatIntervalInSecs,
-                   bulkSendFactor, useBackgroundThread, throwOnError, useSsl, sslCertificateSelection, sslCertificateValidation)
+                   bulkSendFactor, useBackgroundThread, useSsl, sslCertificateSelection, sslCertificateValidation)
         { }
 
         #endregion .Ctors
@@ -143,7 +139,6 @@ namespace Sweet.Redis.v2
                             HearBeatIntervalInSecs,
                             BulkSendFactor,
                             UseBackgroundThread, 
-                            ThrowOnError, 
                             UseSsl,
                             SslCertificateSelection,
                             SslCertificateValidation);

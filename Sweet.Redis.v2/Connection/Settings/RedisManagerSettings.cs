@@ -64,15 +64,13 @@ namespace Sweet.Redis.v2
             int hearBeatIntervalInSecs = RedisConstants.DefaultHeartBeatIntervalSecs,
             int bulkSendFactor = RedisConstants.DefaultBulkSendFactor,
             bool useBackgroundThread = false,
-            bool throwOnError = true,
             bool useSlaveAsMasterIfNoMasterFound = false,
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
             : this(new[] { new RedisEndPoint(host, port) }, managerType, masterName, password, clientName, connectionCount, connectionTimeout,
                 receiveTimeout, sendTimeout, connectionWaitTimeout, readBufferSize, writeBufferSize, heartBeatEnabled, hearBeatIntervalInSecs,
-                bulkSendFactor, useBackgroundThread, throwOnError, useSlaveAsMasterIfNoMasterFound, 
-                useSsl, sslCertificateSelection, sslCertificateValidation)
+                bulkSendFactor, useBackgroundThread, useSlaveAsMasterIfNoMasterFound, useSsl, sslCertificateSelection, sslCertificateValidation)
         { }
 
         public RedisManagerSettings(HashSet<RedisEndPoint> endPoints,
@@ -91,15 +89,14 @@ namespace Sweet.Redis.v2
             int hearBeatIntervalInSecs = RedisConstants.DefaultHeartBeatIntervalSecs,
             int bulkSendFactor = RedisConstants.DefaultBulkSendFactor,
             bool useBackgroundThread = false,
-            bool throwOnError = true,
             bool useSlaveAsMasterIfNoMasterFound = false,
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
             RemoteCertificateValidationCallback sslCertificateValidation = null)
             : this(ToEndPointList(endPoints, RedisConstants.DefaultSentinelPort), managerType, masterName, password, clientName, 
                 connectionCount, connectionTimeout, receiveTimeout, sendTimeout, connectionWaitTimeout, readBufferSize, writeBufferSize,
-                heartBeatEnabled, hearBeatIntervalInSecs, bulkSendFactor, useBackgroundThread, throwOnError,
-                useSlaveAsMasterIfNoMasterFound, useSsl, sslCertificateSelection, sslCertificateValidation)
+                heartBeatEnabled, hearBeatIntervalInSecs, bulkSendFactor, useBackgroundThread, useSlaveAsMasterIfNoMasterFound, 
+                useSsl, sslCertificateSelection, sslCertificateValidation)
         { }
 
         public RedisManagerSettings(RedisEndPoint[] endPoints = null,
@@ -118,7 +115,6 @@ namespace Sweet.Redis.v2
             int hearBeatIntervalInSecs = RedisConstants.DefaultHeartBeatIntervalSecs,
             int bulkSendFactor = RedisConstants.DefaultBulkSendFactor,
             bool useBackgroundThread = false,
-            bool throwOnError = true,
             bool useSlaveAsMasterIfNoMasterFound = false,
             bool useSsl = false,
             LocalCertificateSelectionCallback sslCertificateSelection = null,
@@ -126,7 +122,7 @@ namespace Sweet.Redis.v2
             : base(!endPoints.IsEmpty() ? endPoints : new[] { new RedisEndPoint(RedisConstants.LocalHost, RedisConstants.DefaultPort) },
                    masterName, password, clientName, connectionCount, connectionTimeout, receiveTimeout, sendTimeout,
                    connectionWaitTimeout, readBufferSize, writeBufferSize, heartBeatEnabled, hearBeatIntervalInSecs,
-                   bulkSendFactor, useBackgroundThread, throwOnError, useSsl, sslCertificateSelection, sslCertificateValidation)
+                   bulkSendFactor, useBackgroundThread, useSsl, sslCertificateSelection, sslCertificateValidation)
         { }
 
         #endregion .Ctors
@@ -161,7 +157,6 @@ namespace Sweet.Redis.v2
                             HearBeatIntervalInSecs,
                             BulkSendFactor,
                             UseBackgroundThread,
-                            ThrowOnError,
                             UseSlaveAsMasterIfNoMasterFound,
                             UseSsl,
                             SslCertificateSelection,

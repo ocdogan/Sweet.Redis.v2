@@ -70,8 +70,8 @@ namespace Sweet.Redis.v2
 
         #region .Ctors
 
-        public RedisBatch(RedisAsyncClient asyncClient, int dbIndex, bool throwOnError = true)
-            : base(asyncClient, dbIndex, throwOnError)
+        public RedisBatch(RedisAsyncClient asyncClient, int dbIndex)
+            : base(asyncClient, dbIndex)
         { }
 
         #endregion .Ctors

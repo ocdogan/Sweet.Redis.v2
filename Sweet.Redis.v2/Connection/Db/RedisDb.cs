@@ -48,8 +48,8 @@ namespace Sweet.Redis.v2
 
         #region .Ctors
 
-        public RedisDb(RedisAsyncClient asyncClient, int dbIndex, bool throwOnError = true)
-            : base(asyncClient, dbIndex, throwOnError)
+        public RedisDb(RedisAsyncClient asyncClient, int dbIndex)
+            : base(asyncClient, dbIndex)
         { }
 
         #endregion .Ctors

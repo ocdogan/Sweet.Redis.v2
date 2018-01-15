@@ -42,8 +42,6 @@ namespace Sweet.Redis.v2
         private RedisHeartBeatProbe m_HeartBeatProbe;
         private Action<object, RedisCardioPulseStatus> m_OnPulseStateChange;
 
-        private bool m_ThrowOnError;
-
         #endregion Field Members
 
         #region .Ctors
@@ -75,9 +73,7 @@ namespace Sweet.Redis.v2
 
         private void Init(RedisConnectionSettings settings, RedisAsyncClient client)
         {
-            m_ThrowOnError = settings.ThrowOnError;
-            m_Executer = new RedisAsyncCommandExecuter(client, RedisConstants.UninitializedDbIndex, m_ThrowOnError);
-
+            m_Executer = new RedisAsyncCommandExecuter(client, RedisConstants.UninitializedDbIndex);
             if (IsHeartBeatEnabled(settings))
             {
                 m_HeartBeatProbe = new RedisHeartBeatProbe(settings, this, null);
