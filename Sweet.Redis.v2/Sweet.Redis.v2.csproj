@@ -68,6 +68,7 @@
     <Compile Include="Common\Cluster\RedisClusterInfo.cs" />
     <Compile Include="Common\Cluster\RedisClusterSlotInfo.cs" />
     <Compile Include="Common\RedisBytesCache.cs" />
+    <Compile Include="Common\RedisServerMode.cs" />
     <Compile Include="Common\RedisSynchronizedQueue.cs" />
     <Compile Include="Connection\Async\RedisAsyncSocketBase.cs" />
     <Compile Include="Connection\Async\RedisAsyncContinuousSocket.cs" />

@@ -24,10 +24,10 @@
 
 namespace Sweet.Redis.v2
 {
-    public enum RedisProcessState
+    public enum RedisServerMode
     {
-        Idle = 0,
-        Initialized = 1,
-        Processing = 2
+        Standalone = 0,
+        Sentinel = 1,
+        Cluster = 2
     }
 }

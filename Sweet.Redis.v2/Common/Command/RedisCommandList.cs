@@ -194,6 +194,18 @@ namespace Sweet.Redis.v2
         public static readonly byte[] Sync = "SYNC".ToBytes();
         public static readonly byte[] Time = "TIME".ToBytes();
 
+        // Info command sections
+        public static readonly byte[] InfoClients = "CLIENTS".ToBytes();
+        public static readonly byte[] InfoCluster = "CLUSTER".ToBytes();
+        public static readonly byte[] InfoCpu = "CPU".ToBytes();
+        public static readonly byte[] InfoKeyspace = "KEYSPACE".ToBytes();
+        public static readonly byte[] InfoMemory = "MEMORY".ToBytes();
+        public static readonly byte[] InfoPersistence = "PERSISTENCE".ToBytes();
+        public static readonly byte[] InfoReplication = "REPLICATION".ToBytes();
+        public static readonly byte[] InfoServer = "SERVER".ToBytes();
+        public static readonly byte[] InfoSentinel = "SENTINEL".ToBytes();
+        public static readonly byte[] InfoStats = "STATS".ToBytes();
+        
         // Info command options
         public static readonly byte[] Replication = "replication".ToBytes();
 

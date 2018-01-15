@@ -71,6 +71,7 @@ namespace Sweet.Redis.v2
         private int m_ReceiveTimeout = RedisConstants.DefaultReceiveTimeout;
 
         private RedisRole m_ServerRole;
+        private RedisServerMode m_ServerMode;
 
         protected long m_Id = RedisIDGenerator<RedisAsyncClient>.NextId();
 
@@ -206,18 +207,17 @@ namespace Sweet.Redis.v2
 
         public virtual RedisRole Role
         {
-            get
-            {
-                return m_ServerRole;
-            }
+            get { return m_ServerRole; }
         }
 
         public bool Sending
         {
-            get
-            {
-                return (m_SendStatus != RedisAsyncClientStatus.Idle && Connected);
-            }
+            get { return (m_SendStatus != RedisAsyncClientStatus.Idle && Connected); }
+        }
+
+        public RedisServerMode ServerMode
+        {
+            get { return m_ServerMode; }
         }
 
         public RedisConnectionSettings Settings
@@ -508,6 +508,8 @@ namespace Sweet.Redis.v2
                 var role = (m_ServerRole = DiscoverRole());
                 ValidateRole(role);
             }
+
+            m_ServerMode = NeedsToDiscoverMode() ? DiscoverMode() : RedisServerMode.Standalone;
         }
 
         private void SwitchSocket(RedisAsyncSocketBase socket)
@@ -1002,9 +1004,7 @@ namespace Sweet.Redis.v2
 
         protected virtual bool NeedsToDiscoverRole()
         {
-            var expectedRole = ExpectedRole;
-            return !(expectedRole == RedisRole.Any ||
-                     expectedRole == RedisRole.Undefined);
+            return true;
         }
 
         protected virtual void ValidateRole(RedisRole commandRole)
@@ -1044,6 +1044,40 @@ namespace Sweet.Redis.v2
             return null;
         }
 
+        protected virtual bool NeedsToDiscoverMode()
+        {
+            return Role != RedisRole.Sentinel;
+        }
+
+        protected virtual RedisServerMode DiscoverMode()
+        {
+            if (!Disposed)
+            {
+                try
+                {
+                    var info = GetServerInfo();
+                    if (!ReferenceEquals(info, null))
+                    {
+                        var serverInfo = info.Server;
+                        if (!ReferenceEquals(serverInfo, null))
+                        {
+                            var redisMode = (serverInfo.RedisMode ?? String.Empty).ToLowerInvariant();
+                            if (redisMode == "sentinel")
+                                return RedisServerMode.Sentinel;
+
+                            if (redisMode == "cluster")
+                                return RedisServerMode.Cluster;
+
+                            return RedisServerMode.Standalone;
+                        }
+                    }
+                }
+                catch (Exception e)
+                { }
+            }
+            return RedisServerMode.Standalone;
+        }
+
         protected virtual RedisRole DiscoverRole()
         {
             if (!Disposed)
@@ -1053,8 +1087,7 @@ namespace Sweet.Redis.v2
                 {
                     var array = RunSyncTask(new RedisCommand(RedisConstants.UninitializedDbIndex,
                                                 RedisCommandList.Role,
-                                                RedisCommandType.SendAndReceive)
-                    { Priority = RedisCommandPriority.High }) as RedisArray;
+                                                RedisCommandType.SendAndReceive) { Priority = RedisCommandPriority.High }) as RedisArray;
 
                     if (!ReferenceEquals(array, null) && array.IsCompleted)
                     {

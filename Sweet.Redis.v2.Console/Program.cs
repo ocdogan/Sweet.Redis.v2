@@ -23,7 +23,7 @@ namespace Sweet.Redis.v2
 
         #endregion TestResult
 
-        private const int RedisPort = 6380;
+        private const int RedisPort = 6380; // 7000;
         private const string RedisHost = "127.0.0.1"; // "172.28.10.234"
 
         static void Main(string[] args)
@@ -32,7 +32,7 @@ namespace Sweet.Redis.v2
             {
                 Console.Clear();
 
-                UnitTests();
+                // UnitTests();
 
                 // PerformancePingTests();
                 // PerformanceGetTinyTests();
@@ -79,7 +79,7 @@ namespace Sweet.Redis.v2
                 // ManagerTest10();
                 // ManagerTest11();
                 // ManagerTest12();
-                // ManagerTest14();
+                ManagerTest14();
             }
             while (Console.ReadKey(true).Key != ConsoleKey.Escape);
         }

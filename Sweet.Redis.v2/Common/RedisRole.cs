@@ -24,7 +24,7 @@
 
 namespace Sweet.Redis.v2
 {
-    public enum RedisRole : int
+    public enum RedisRole
     {
         Undefined = 0,
         Any = 1,

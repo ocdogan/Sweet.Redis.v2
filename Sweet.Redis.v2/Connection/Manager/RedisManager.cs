@@ -33,7 +33,7 @@ namespace Sweet.Redis.v2
     {
         #region InitializationState
 
-        private enum InitializationState : int
+        private enum InitializationState
         {
             Undefined = 0,
             Initializing = 1,
