@@ -195,8 +195,8 @@ namespace Sweet.Redis.v2
                         }
 
                         if (start > -1 && end > -1 && end > start + 1)
-                            m_Slot = RedisCRC16.CRC16(m_Data, start + 1, end - start - 1) % 16384;
-                        else m_Slot = RedisCRC16.CRC16(m_Data) % 16384;
+                            m_Slot = RedisCRC16.CRC16(m_Data, start + 1, end - start - 1) % RedisConstants.ClusterSlotMod;
+                        else m_Slot = RedisCRC16.CRC16(m_Data) % RedisConstants.ClusterSlotMod;
                     }
                 }
                 m_Slot = 0;

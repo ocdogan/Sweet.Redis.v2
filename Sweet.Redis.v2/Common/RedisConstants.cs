@@ -190,6 +190,8 @@ namespace Sweet.Redis.v2
 
         public const string CRLF = "\r\n";
 
+        public const int ClusterSlotMod = 16384;
+
         public const int DefaultPort = 6379;
         public const int DefaultSentinelPort = 26379;
 

@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -509,7 +510,11 @@ namespace Sweet.Redis.v2
                 ValidateRole(role);
             }
 
-            m_ServerMode = NeedsToDiscoverMode() ? DiscoverMode() : RedisServerMode.Standalone;
+            var serverMode = (m_ServerMode = NeedsToDiscoverMode() ? DiscoverMode() : RedisServerMode.Standalone);
+            if (serverMode == RedisServerMode.Cluster)
+            {
+                DiscoverClusterSlots();
+            }
         }
 
         private void SwitchSocket(RedisAsyncSocketBase socket)
@@ -998,28 +1003,6 @@ namespace Sweet.Redis.v2
             return true;
         }
 
-        #endregion Base Methods
-
-        #region Roles
-
-        protected virtual bool NeedsToDiscoverRole()
-        {
-            return true;
-        }
-
-        protected virtual void ValidateRole(RedisRole commandRole)
-        {
-            if (!(commandRole == RedisRole.Undefined || commandRole == RedisRole.Any))
-            {
-                var serverRole = Role;
-                if (serverRole != RedisRole.Any && serverRole != commandRole &&
-                    (serverRole == RedisRole.Sentinel || commandRole == RedisRole.Sentinel ||
-                     (serverRole == RedisRole.Slave && commandRole == RedisRole.Master)))
-                    throw new RedisException(String.Format("Connected server's {0} role does not satisfy the command's desired {1} role",
-                                                           serverRole.ToString("F"), commandRole.ToString("F")), RedisErrorCode.NotSupported);
-            }
-        }
-
         public RedisServerInfo GetServerInfo()
         {
             try
@@ -1028,8 +1011,7 @@ namespace Sweet.Redis.v2
                 {
                     var bytes = RunSyncTask(new RedisCommand(RedisConstants.UninitializedDbIndex,
                                                 RedisCommandList.Info,
-                                                RedisCommandType.SendAndReceive)
-                    { Priority = RedisCommandPriority.High }) as RedisBytes;
+                                                RedisCommandType.SendAndReceive) { Priority = RedisCommandPriority.High }) as RedisBytes;
 
                     if (!ReferenceEquals(bytes, null))
                     {
@@ -1043,6 +1025,10 @@ namespace Sweet.Redis.v2
             { }
             return null;
         }
+
+        #endregion Base Methods
+
+        #region Clusters
 
         protected virtual bool NeedsToDiscoverMode()
         {
@@ -1076,6 +1062,98 @@ namespace Sweet.Redis.v2
                 { }
             }
             return RedisServerMode.Standalone;
+        }
+
+        protected virtual void DiscoverClusterSlots()
+        {
+            try
+            {
+                if (!Disposed && m_ServerMode == RedisServerMode.Cluster)
+                {
+                    var ep = EndPoint;
+                    if (ep != null)
+                    {
+                        var host = (string)null;
+                        var port = -1;
+
+                        var rep = ep as RedisEndPoint;
+                        if (!ReferenceEquals(rep, null))
+                        {
+                            host = rep.Host;
+                            port = rep.Port;
+                        }
+                        else
+                        {
+                            var ipEp = ep as IPEndPoint;
+                            if (ipEp != null)
+                            {
+                                host = ipEp.Address.ToString();
+                                port = ipEp.Port;
+                            }
+                            else
+                            {
+                                var dnsEp = ep as DnsEndPoint;
+                                if (dnsEp != null)
+                                {
+                                    host = dnsEp.Host;
+                                    port = dnsEp.Port;
+                                }
+                            }
+                        }
+
+                        if (!host.IsEmpty() && port > -1)
+                        {
+                            var bytes = RunSyncTask(new RedisCommand(RedisConstants.UninitializedDbIndex,
+                                                    RedisCommandList.Cluster,
+                                                    RedisCommandType.SendAndReceive,
+                                                    RedisCommandList.ClusterNodes) { Priority = RedisCommandPriority.High }) as RedisBytes;
+
+                            if (!ReferenceEquals(bytes, null))
+                            {
+                                var lines = bytes.Value.ToUTF8String();
+                                if (!lines.IsEmpty())
+                                {
+                                    var nodes = RedisClusterNodeInfo.Parse(lines);
+                                    if (!nodes.IsEmpty())
+                                    {
+                                        var myIPAndPort = host + ":" + port;
+
+                                        var node = nodes.FirstOrDefault(n => n.IpPort == myIPAndPort);
+                                        if (node != null)
+                                        {
+                                            var slots = node.Slots;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            { }
+        }
+
+        #endregion Clusters
+
+        #region Roles
+
+        protected virtual bool NeedsToDiscoverRole()
+        {
+            return true;
+        }
+
+        protected virtual void ValidateRole(RedisRole commandRole)
+        {
+            if (!(commandRole == RedisRole.Undefined || commandRole == RedisRole.Any))
+            {
+                var serverRole = Role;
+                if (serverRole != RedisRole.Any && serverRole != commandRole &&
+                    (serverRole == RedisRole.Sentinel || commandRole == RedisRole.Sentinel ||
+                     (serverRole == RedisRole.Slave && commandRole == RedisRole.Master)))
+                    throw new RedisException(String.Format("Connected server's {0} role does not satisfy the command's desired {1} role",
+                                                           serverRole.ToString("F"), commandRole.ToString("F")), RedisErrorCode.NotSupported);
+            }
         }
 
         protected virtual RedisRole DiscoverRole()
