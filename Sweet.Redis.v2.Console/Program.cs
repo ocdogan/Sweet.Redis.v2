@@ -36,7 +36,7 @@ namespace Sweet.Redis.v2
 
                 // PerformancePingTests();
                 // PerformanceGetTinyTests();
-                // PerformancePipeTests();
+                PerformancePipeTests();
                 // PerformanceManagerGetTinyTests();
 
                 // MonitorTest1();
@@ -79,7 +79,7 @@ namespace Sweet.Redis.v2
                 // ManagerTest10();
                 // ManagerTest11();
                 // ManagerTest12();
-                ManagerTest14();
+                // ManagerTest14();
             }
             while (Console.ReadKey(true).Key != ConsoleKey.Escape);
         }

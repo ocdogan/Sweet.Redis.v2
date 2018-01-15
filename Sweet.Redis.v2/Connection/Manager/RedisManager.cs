@@ -1105,7 +1105,20 @@ namespace Sweet.Redis.v2
                     finally
                     {
                         if ((role == RedisRole.Sentinel) && node.IsClosed)
-                            AttachToSentinels();
+                        {
+                            var attach = true;
+
+                            var sentinelGroup = nodesGroup as RedisManagedSentinelGroup;
+                            if (sentinelGroup != null)
+                            {
+                                var monitoredEndPoint = sentinelGroup.MonitoredEndPoint;
+                                if (!ReferenceEquals(monitoredEndPoint, null))
+                                    attach = endPoint == monitoredEndPoint;
+                            }
+
+                            if (attach)
+                                AttachToSentinels();
+                        }
                     }
                     return;
                 }

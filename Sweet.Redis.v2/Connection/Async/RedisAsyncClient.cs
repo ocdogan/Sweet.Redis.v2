@@ -164,7 +164,7 @@ namespace Sweet.Redis.v2
                                 if (!endPoints.IsEmpty())
                                 {
                                     foreach (var ep in endPoints)
-                                        if (ep != null)
+                                        if (!ReferenceEquals(ep, null))
                                         {
                                             var ipEPs = ep.ResolveHost();
                                             if (!ipEPs.IsEmpty())

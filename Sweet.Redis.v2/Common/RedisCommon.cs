@@ -537,7 +537,7 @@ namespace Sweet.Redis.v2
 
         internal static bool IsEmpty(this RedisEndPoint endPoint)
         {
-            return (endPoint == null || endPoint.IsEmpty);
+            return (ReferenceEquals(endPoint, null) || endPoint.IsEmpty);
         }
 
         internal static bool IsAlive(this IRedisDisposableBase obj)

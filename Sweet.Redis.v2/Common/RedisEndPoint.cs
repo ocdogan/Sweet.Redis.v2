@@ -197,12 +197,21 @@ namespace Sweet.Redis.v2
 
             var other = obj as RedisEndPoint;
             if (!ReferenceEquals(other, null))
-                return Port == other.Port &&
-                     String.Equals(Host, other.Host, StringComparison.OrdinalIgnoreCase);
+                return m_Port == other.m_Port &&
+                     String.Equals(m_Host, other.m_Host, StringComparison.OrdinalIgnoreCase);
+
+            var ipEP = obj as IPEndPoint;
+            if (!ReferenceEquals(ipEP, null))
+                return m_Port == ipEP.Port &&
+                     String.Equals(m_Host, ipEP.Address.ToString(), StringComparison.OrdinalIgnoreCase);
+
+            var dnsEP = obj as DnsEndPoint;
+            if (!ReferenceEquals(dnsEP, null))
+                return m_Port == dnsEP.Port &&
+                     String.Equals(m_Host, dnsEP.Host, StringComparison.OrdinalIgnoreCase);
 
             return false;
         }
-
 
         public bool Equals(RedisEndPoint other)
         {
@@ -345,6 +354,52 @@ namespace Sweet.Redis.v2
         public static bool operator !=(RedisEndPoint a, RedisEndPoint b)
         {
             return !(a == b);
+        }
+
+        public static bool operator ==(RedisEndPoint a, IPEndPoint b)
+        {
+            if (ReferenceEquals(a, null))
+                return ReferenceEquals(b, null);
+
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(RedisEndPoint a, IPEndPoint b)
+        {
+            return !(a == b);
+        }
+
+        public static bool operator ==(IPEndPoint a, RedisEndPoint b)
+        {
+            return (b == a);
+        }
+
+        public static bool operator !=(IPEndPoint a, RedisEndPoint b)
+        {
+            return !(b == a);
+        }
+
+        public static bool operator ==(RedisEndPoint a, DnsEndPoint b)
+        {
+            if (ReferenceEquals(a, null))
+                return ReferenceEquals(b, null);
+
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(RedisEndPoint a, DnsEndPoint b)
+        {
+            return !(a == b);
+        }
+
+        public static bool operator ==(DnsEndPoint a, RedisEndPoint b)
+        {
+            return (b == a);
+        }
+
+        public static bool operator !=(DnsEndPoint a, RedisEndPoint b)
+        {
+            return !(b == a);
         }
 
         #endregion Operator Overloads

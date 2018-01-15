@@ -64,9 +64,10 @@ namespace Sweet.Redis.v2
         private string m_MasterName;
         private int m_MonitoringStatus;
 
+        private RedisEndPoint m_MonitoredEndPoint;
+        private RedisManagedSentinelListener m_MonitoredSentinel;
+        
         private Action<RedisSentinelMessage> m_OnSentinelMessage;
-
-        private readonly List<RedisManagedSentinelListener> m_MonitoredSentinels = new List<RedisManagedSentinelListener>();
 
         #endregion Field Members
 
@@ -109,6 +110,42 @@ namespace Sweet.Redis.v2
             }
         }
 
+        public RedisEndPoint MonitoredEndPoint
+        {
+            get
+            {
+                var result = m_MonitoredEndPoint;
+                if (ReferenceEquals(result, null))
+                {
+                    var monitoredSentinel = m_MonitoredSentinel;
+                    if (monitoredSentinel.IsAlive())
+                    {
+                        var ep = monitoredSentinel.EndPoint;
+                        if (ep is RedisEndPoint)
+                        {
+                            m_MonitoredEndPoint = (result = (RedisEndPoint)ep);
+                            return result;
+                        }
+
+                        if (ep is IPEndPoint)
+                        {
+                            var ipEp = (IPEndPoint)ep;
+
+                            m_MonitoredEndPoint = (result = new RedisEndPoint(ipEp.Address.ToString(), ipEp.Port));
+                            return result;
+                        }
+
+                        if (ep is DnsEndPoint)
+                        {
+                            var dnsEp = (DnsEndPoint)ep;
+                            m_MonitoredEndPoint = (result = new RedisEndPoint(dnsEp.Host, dnsEp.Port));
+                        }
+                    }
+                }
+                return result;
+            }
+        }
+
         #endregion Properties
 
         #region Methods
@@ -116,20 +153,7 @@ namespace Sweet.Redis.v2
         protected override RedisManagedNode[] ExchangeNodesInternal(RedisManagedNode[] nodes)
         {
             var oldNodes = base.ExchangeNodesInternal(nodes);
-            if (oldNodes != null)
-            {
-                var monitoredSentinels = m_MonitoredSentinels;
-                
-                foreach (var oldNode in oldNodes)
-                {
-                    if (oldNode != null)
-                    {
-                        var listener = (RedisManagedSentinelListener)oldNode.Seed;
-                        if (listener != null)
-                            monitoredSentinels.Remove(listener);
-                    }
-                }
-            }
+            CloseMonitoring();
 
             return oldNodes;
         }
@@ -145,67 +169,56 @@ namespace Sweet.Redis.v2
 
             if (Interlocked.CompareExchange(ref m_MonitoringStatus, 1, 0) == 0 || force)
             {
-                var attached = false;
+                var monitoredSentinel = (RedisManagedSentinelListener)null;
                 try
                 {
-                    RemoveClosedNodes();
+                    CloseMonitoring();
 
                     var nodes = Nodes;
                     if (!nodes.IsEmpty())
                     {
-                        var monitoredSentinels = m_MonitoredSentinels;
-
-                        attached = TryToMonitorOneOf(nodes, monitoredSentinels, onComplete, false);
-                        if (!attached)
-                            attached = TryToMonitorOneOf(nodes, monitoredSentinels, onComplete, true);
+                        monitoredSentinel = TryToMonitorOneOf(nodes, onComplete, false);
+                        if (monitoredSentinel == null)
+                            monitoredSentinel = TryToMonitorOneOf(nodes, onComplete, true);
                     }
                 }
                 catch (Exception)
-                {
-                    Interlocked.Exchange(ref m_MonitoringStatus, 0);
-                }
+                { }
                 finally
                 {
-                    if (!attached)
+                    Interlocked.Exchange(ref m_MonitoredEndPoint, null);
+                    Interlocked.Exchange(ref m_MonitoredSentinel, monitoredSentinel);
+
+                    if (monitoredSentinel == null)
                         Interlocked.Exchange(ref m_MonitoringStatus, 0);
                 }
             }
         }
 
-        private void RemoveClosedNodes()
+        private void CloseMonitoring()
         {
-            var monitoredSentinels = m_MonitoredSentinels;
+            Interlocked.Exchange(ref m_MonitoredEndPoint, null);
+            var monitoredSentinel = Interlocked.Exchange(ref m_MonitoredSentinel, null);
             try
             {
-                if (!monitoredSentinels.IsEmpty())
+                if (monitoredSentinel.IsAlive())
                 {
-                    for (var i = monitoredSentinels.Count - 1; i > -1; i--)
+                    var success = false;
+                    try
                     {
-                        var node = monitoredSentinels[i];
+                        success = monitoredSentinel.Ping();
+                    }
+                    catch (Exception)
+                    { }
 
-                        if (!node.IsAlive())
-                            monitoredSentinels.Remove(node);
-                        else
+                    if (!success)
+                    {
+                        try
                         {
-                            var success = false;
-                            try
-                            {
-                                success = node.Ping();
-                            }
-                            catch (Exception)
-                            { }
-
-                            if (!success)
-                            {
-                                monitoredSentinels.Remove(node);
-                                try
-                                {
-                                    node.Quit();
-                                }
-                                catch (Exception)
-                                { }
-                            }
+                            monitoredSentinel.Quit();
                         }
+                        catch (Exception)
+                        { }
                     }
                 }
             }
@@ -213,10 +226,7 @@ namespace Sweet.Redis.v2
             { }
         }
 
-        private bool TryToMonitorOneOf(RedisManagedNode[] nodes,
-                                       List<RedisManagedSentinelListener> monitoredSentinels,
-                                       Action<object> onComplete,
-                                       bool getDownNodes)
+        private RedisManagedSentinelListener TryToMonitorOneOf(RedisManagedNode[] nodes, Action<object> onComplete, bool getDownNodes)
         {
             try
             {
@@ -234,20 +244,21 @@ namespace Sweet.Redis.v2
 
                     foreach (var node in filteredNodes)
                     {
-                        if (!Disposed &&
-                           TryToMonitor(node as RedisManagedSentinelNode, monitoredSentinels, onComplete))
-                            return true;
+                        if (!Disposed)
+                        {
+                            var listener = TryToMonitor(node as RedisManagedSentinelNode, onComplete);
+                            if (listener != null)
+                                return listener;
+                        }
                     }
                 }
             }
             catch (Exception)
             { }
-            return false;
+            return null;
         }
 
-        private bool TryToMonitor(RedisManagedSentinelNode node,
-                                  List<RedisManagedSentinelListener> monitoredSentinels,
-                                  Action<object> onComplete)
+        private RedisManagedSentinelListener TryToMonitor(RedisManagedSentinelNode node, Action<object> onComplete)
         {
             if (node.IsAlive())
             {
@@ -257,7 +268,7 @@ namespace Sweet.Redis.v2
                     if (listener.IsAlive())
                     {
                         if (!listener.Ping())
-                            return false;
+                            return null;
 
                         listener.Subscribe(PubSubMessageReceived,
                                 RedisCommandList.SentinelChanelSDownEntered,
@@ -267,9 +278,7 @@ namespace Sweet.Redis.v2
                                 RedisCommandList.SentinelChanelSwitchMaster,
                                 RedisCommandList.SentinelChanelSentinel);
 
-                        monitoredSentinels.Add(listener);
-
-                        return true;
+                        return listener;
                     }
                 }
                 catch (Exception)
@@ -277,7 +286,7 @@ namespace Sweet.Redis.v2
                     node.IsClosed = true;
                 }
             }
-            return false;
+            return null;
         }
 
         private void PubSubMessageReceived(RedisPubSubMessage message)
@@ -458,28 +467,24 @@ namespace Sweet.Redis.v2
         {
             if (Interlocked.CompareExchange(ref m_MonitoringStatus, 0, 1) == 1)
             {
-                var monitoredSentinels = m_MonitoredSentinels;
-                if (monitoredSentinels != null && monitoredSentinels.Count > 0)
+                Interlocked.Exchange(ref m_MonitoredEndPoint, null);
+                var monitoredSentinel = Interlocked.Exchange(ref m_MonitoredSentinel, null);
+
+                if (monitoredSentinel.IsAlive())
                 {
-                    var sentinels = monitoredSentinels.ToArray();
-                    if (!sentinels.IsEmpty())
+                    try
                     {
-                        foreach (var sentinel in sentinels)
-                        {
-                            try
-                            {
-                                if (sentinel.IsAlive())
-                                    sentinel.Unsubscribe();
-                            }
-                            catch (Exception)
-                            { }
-                            finally
-                            {
-                                if (sentinel != null)
-                                    monitoredSentinels.Remove(sentinel);
-                            }
-                        }
+                        monitoredSentinel.Unsubscribe();
                     }
+                    catch (Exception)
+                    { }
+
+                    try
+                    {
+                        monitoredSentinel.Quit();
+                    }
+                    catch (Exception)
+                    { }
                 }
             }
         }

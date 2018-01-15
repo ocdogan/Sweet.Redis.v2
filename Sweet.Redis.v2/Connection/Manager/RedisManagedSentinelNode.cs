@@ -60,7 +60,7 @@ namespace Sweet.Redis.v2
                 if (sEndPoint != null)
                 {
                     result = sEndPoint as RedisEndPoint;
-                    if (result == null)
+                    if (ReferenceEquals(result, null))
                     {
                         var ipEP = sEndPoint as IPEndPoint;
                         if (ipEP != null)
@@ -75,11 +75,11 @@ namespace Sweet.Redis.v2
                 }
             }
 
-            if (result == null || result.IsEmpty)
+            if (ReferenceEquals(result, null) || result.IsEmpty)
             {
                 var endPoints = Settings.EndPoints;
                 if (!endPoints.IsEmpty())
-                    result = endPoints.FirstOrDefault(ep => ep != null && !ep.IsEmpty);
+                    result = endPoints.FirstOrDefault(ep => !ReferenceEquals(ep, null) && !ep.IsEmpty);
             }
 
             return result ?? RedisEndPoint.Empty;

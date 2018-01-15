@@ -242,7 +242,7 @@ namespace Sweet.Redis.v2
                         {
                             try
                             {
-                                if (!Disposed && siblingEndPoint != null && !siblingEndPoint.Host.IsEmpty())
+                                if (!Disposed && !ReferenceEquals(siblingEndPoint, null) && !siblingEndPoint.Host.IsEmpty())
                                 {
                                     var siblingSettings = (RedisConnectionSettings)settings.Clone(siblingEndPoint.Host, siblingEndPoint.Port);
 

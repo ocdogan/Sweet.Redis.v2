@@ -379,11 +379,6 @@ namespace Sweet.Redis.v2
                     }
                     catch (Exception)
                     { }
-                    finally
-                    {
-                        if (!processed)
-                            Thread.Sleep(1);
-                    }
                 }
             }
             catch (Exception)
