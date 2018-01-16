@@ -1075,84 +1075,53 @@ namespace Sweet.Redis.v2
                     var ep = EndPoint;
                     if (ep != null)
                     {
-                        var host = (string)null;
-                        var port = -1;
+                        var myIPAndPorts = GetMyIPAndPort();
 
-                        var ipEp = ep as IPEndPoint;
-                        if (ipEp != null)
-                        {
-                            host = ipEp.Address.ToString();
-                            port = ipEp.Port;
-                        }
-                        else
-                        {
-                            var rep = ep as RedisEndPoint;
-                            if (!ReferenceEquals(rep, null))
-                            {
-                                host = rep.Host;
-                                port = rep.Port;
-                            }
-                            else
-                            {
-                                var dnsEp = ep as DnsEndPoint;
-                                if (dnsEp != null)
-                                {
-                                    host = dnsEp.Host;
-                                    port = dnsEp.Port;
-                                }
-                            }
-                        }
-
-                        if (!host.IsEmpty() && port > -1)
+                        if (!myIPAndPorts.IsEmpty())
                         {
                             var bytes = RunSyncTask(new RedisCommand(RedisConstants.UninitializedDbIndex,
                                                     RedisCommandList.Cluster,
                                                     RedisCommandType.SendAndReceive,
                                                     RedisCommandList.ClusterNodes) { Priority = RedisCommandPriority.High }) as RedisBytes;
 
-                            if (!ReferenceEquals(bytes, null))
+                            var nodeLines = bytes.ToUTF8String();
+                            if (!nodeLines.IsEmpty())
                             {
-                                var lines = bytes.Value.ToUTF8String();
-                                if (!lines.IsEmpty())
+                                var nodes = RedisClusterNodeInfo.Parse(nodeLines);
+                                if (!nodes.IsEmpty())
                                 {
-                                    var nodes = RedisClusterNodeInfo.Parse(lines);
-                                    if (!nodes.IsEmpty())
+                                    var node = nodes.FirstOrDefault(n => myIPAndPorts.Contains(n.IpPort));
+                                    if (node != null)
                                     {
-                                        var myIPAndPort = host + ":" + port;
-
-                                        var node = nodes.FirstOrDefault(n => n.IpPort == myIPAndPort);
-                                        if (node != null)
+                                        var slots = node.Slots;
+                                        if (!slots.IsEmpty())
                                         {
-                                            var slots = node.Slots;
-                                            if (!slots.IsEmpty())
+                                            var slotArray = slots.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                            if (!slotArray.IsEmpty())
                                             {
-                                                var slotArray = slots.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                                if (!slotArray.IsEmpty())
+                                                slotList = new RedisClusterSlotList();
+
+                                                var length = slotArray.Length;
+                                                for (var i = 0; i < length; i++)
                                                 {
-                                                    slotList = new RedisClusterSlotList();
-
-                                                    var length = slotArray.Length;
-                                                    for (var i = 0; i < length; i++)
+                                                    var slot = slotArray[i];
+                                                    if (slot != null)
                                                     {
-                                                        var slot = slotArray[i];
-                                                        if (slot != null)
+                                                        var slotLength = slot.Length;
+                                                        if (slotLength > 0)
                                                         {
-                                                            var slotLength = slot.Length;
-                                                            if (slotLength > 0)
-                                                            {
-                                                                var pos = slot.IndexOf('-');
+                                                            var pos = slot.IndexOf('-');
 
-                                                                var start = pos > 0 ? slot.Substring(0, pos).ToInt(-1) : 0;
-                                                                var end = pos < slotLength - 1 ? slot.Substring(pos + 1, slotLength - pos - 1).ToInt(-1) : start;
+                                                            var start = pos > 0 ? slot.Substring(0, pos).ToInt(-1) : 0;
+                                                            var end = pos < slotLength - 1 ? slot.Substring(pos + 1, slotLength - pos - 1).ToInt(-1) : start;
 
-                                                                if (start > -1)
-                                                                    slotList.Add(new RedisClusterSlot(start, end));
-                                                            }
+                                                            if (start > -1)
+                                                                slotList.Add(new RedisClusterSlot(start, end));
                                                         }
                                                     }
-
-                                                    slotList.Sort();
                                                 }
+
+                                                slotList.Sort();
                                             }
                                         }
                                     }
@@ -1166,6 +1135,40 @@ namespace Sweet.Redis.v2
             { }
 
             using (Interlocked.Exchange(ref m_SlotList, slotList)) { }
+        }
+
+        protected string[] GetMyIPAndPort()
+        {
+            var ep = EndPoint;
+            if (ep != null)
+            {
+                var ipEp = ep as IPEndPoint;
+                if (ipEp != null)
+                    return new[] { ipEp.Address.ToString() + ":" + ipEp.Port };
+
+                var rep = ep as RedisEndPoint;
+                if (!ReferenceEquals(rep, null))
+                {
+                    var ipAddresses = rep.ResolveHost();
+                    if (!ipAddresses.IsEmpty())
+                        return ipAddresses.Select(addr => addr + ":" + rep.Port).ToArray();
+
+                    return new[] { rep.Host + ":" + rep.Port };
+                }
+
+                var dnsEp = ep as DnsEndPoint;
+                if (dnsEp != null)
+                {
+                    rep = new RedisEndPoint(dnsEp.Host, dnsEp.Port);
+                    
+                    var ipAddresses = rep.ResolveHost();
+                    if (!ipAddresses.IsEmpty())
+                        return ipAddresses.Select(addr => addr + ":" + rep.Port).ToArray();
+
+                    return new[] { dnsEp.Host + ":" + dnsEp.Port };
+                }
+            }
+            return null;
         }
 
         #endregion Clusters
