@@ -474,6 +474,11 @@ namespace Sweet.Redis.v2
             return result;
         }
 
+        protected override bool NeedsToDiscoverMode()
+        {
+            return false;
+        }
+
         protected override bool NeedsToDiscoverRole()
         {
             return false;

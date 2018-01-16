@@ -159,6 +159,11 @@ namespace Sweet.Redis.v2
 
         #region Base Methods
 
+        protected override bool NeedsToDiscoverMode()
+        {
+            return false;
+        }
+
         protected override bool NeedsToDiscoverRole()
         {
             return false;
