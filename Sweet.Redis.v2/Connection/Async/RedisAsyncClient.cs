@@ -63,16 +63,18 @@ namespace Sweet.Redis.v2
         private RedisAsyncSocketBase m_Socket;
         private RedisConnectionSettings m_Settings;
 
-        private long m_SendStatus;
+        private int m_SendStatus;
         private bool m_UseBackgroundThread;
 
         private bool m_Constructed;
-        private long m_ThreadRunning;
+        private int m_ThreadRunning;
         private Thread m_BackgroundThread;
         private int m_ReceiveTimeout = RedisConstants.DefaultReceiveTimeout;
 
         private RedisRole m_ServerRole;
         private RedisServerMode m_ServerMode;
+
+        private RedisClusterSlotList m_SlotList;
 
         protected long m_Id = RedisIDGenerator<RedisAsyncClient>.NextId();
 
@@ -102,6 +104,7 @@ namespace Sweet.Redis.v2
 
         protected override void OnDispose(bool disposing)
         {
+            using (Interlocked.Exchange(ref m_SlotList, null)) { }
             if (UseBackgroundThread)
             {
                 AbortBackgroundThread();
@@ -244,7 +247,7 @@ namespace Sweet.Redis.v2
 
         protected bool ThreadRunning
         {
-            get { return m_ThreadRunning != RedisConstants.Zero; }
+            get { return m_ThreadRunning != 0; }
         }
 
         #endregion Properties
@@ -340,7 +343,7 @@ namespace Sweet.Redis.v2
             }
             finally
             {
-                Interlocked.Exchange(ref client.m_ThreadRunning, RedisConstants.Zero);
+                Interlocked.Exchange(ref client.m_ThreadRunning, 0);
             }
         };
 
@@ -373,7 +376,7 @@ namespace Sweet.Redis.v2
         protected virtual void InitBackgroundThread()
         {
             if (!Disposed && UseBackgroundThread &&
-                Interlocked.CompareExchange(ref m_ThreadRunning, RedisConstants.One, RedisConstants.Zero) == RedisConstants.Zero)
+                Interlocked.CompareExchange(ref m_ThreadRunning, 1, 0) == 0)
             {
                 try
                 {
@@ -383,7 +386,7 @@ namespace Sweet.Redis.v2
                 }
                 catch (Exception)
                 {
-                    Interlocked.Exchange(ref m_ThreadRunning, RedisConstants.Zero);
+                    Interlocked.Exchange(ref m_ThreadRunning, 0);
                 }
             }
         }
@@ -512,9 +515,7 @@ namespace Sweet.Redis.v2
 
             var serverMode = (m_ServerMode = NeedsToDiscoverMode() ? DiscoverMode() : RedisServerMode.Standalone);
             if (serverMode == RedisServerMode.Cluster)
-            {
                 DiscoverClusterSlots();
-            }
         }
 
         private void SwitchSocket(RedisAsyncSocketBase socket)
@@ -1066,6 +1067,7 @@ namespace Sweet.Redis.v2
 
         protected virtual void DiscoverClusterSlots()
         {
+            var slotList = (RedisClusterSlotList)null;
             try
             {
                 if (!Disposed && m_ServerMode == RedisServerMode.Cluster)
@@ -1076,19 +1078,19 @@ namespace Sweet.Redis.v2
                         var host = (string)null;
                         var port = -1;
 
-                        var rep = ep as RedisEndPoint;
-                        if (!ReferenceEquals(rep, null))
+                        var ipEp = ep as IPEndPoint;
+                        if (ipEp != null)
                         {
-                            host = rep.Host;
-                            port = rep.Port;
+                            host = ipEp.Address.ToString();
+                            port = ipEp.Port;
                         }
                         else
                         {
-                            var ipEp = ep as IPEndPoint;
-                            if (ipEp != null)
+                            var rep = ep as RedisEndPoint;
+                            if (!ReferenceEquals(rep, null))
                             {
-                                host = ipEp.Address.ToString();
-                                port = ipEp.Port;
+                                host = rep.Host;
+                                port = rep.Port;
                             }
                             else
                             {
@@ -1122,6 +1124,36 @@ namespace Sweet.Redis.v2
                                         if (node != null)
                                         {
                                             var slots = node.Slots;
+                                            if (!slots.IsEmpty())
+                                            {
+                                                var slotArray = slots.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                                if (!slotArray.IsEmpty())
+                                                {
+                                                    slotList = new RedisClusterSlotList();
+
+                                                    var length = slotArray.Length;
+                                                    for (var i = 0; i < length; i++)
+                                                    {
+                                                        var slot = slotArray[i];
+                                                        if (slot != null)
+                                                        {
+                                                            var slotLength = slot.Length;
+                                                            if (slotLength > 0)
+                                                            {
+                                                                var pos = slot.IndexOf('-');
+
+                                                                var start = pos > 0 ? slot.Substring(0, pos).ToInt(-1) : 0;
+                                                                var end = pos < slotLength - 1 ? slot.Substring(pos + 1, slotLength - pos - 1).ToInt(-1) : start;
+
+                                                                if (start > -1)
+                                                                    slotList.Add(new RedisClusterSlot(start, end));
+                                                            }
+                                                        }
+                                                    }
+
+                                                    slotList.Sort();
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1132,6 +1164,8 @@ namespace Sweet.Redis.v2
             }
             catch (Exception)
             { }
+
+            using (Interlocked.Exchange(ref m_SlotList, slotList)) { }
         }
 
         #endregion Clusters

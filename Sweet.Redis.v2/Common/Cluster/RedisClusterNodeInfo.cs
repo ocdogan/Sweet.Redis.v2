@@ -153,31 +153,31 @@ namespace Sweet.Redis.v2
                 var linesValue = lines.Value;
                 if (!linesValue.IsEmpty())
                 {
-                    var items = linesValue.Split(new[] { RedisConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);
+                    var items = linesValue.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                     if (items != null)
                     {
                         var count = items.Length;
                         if (count > 0)
                         {
-                            for (var i = 0; i < count; i += 2)
+                            var result = new List<RedisClusterNodeInfo>(count);
+
+                            for (var i = 0; i < count; i++)
                             {
                                 var item = items[i];
                                 if (!item.IsEmpty())
                                 {
-                                    var result = new List<RedisClusterNodeInfo>(items.Length);
-
                                     var parts = item.Split(new[] { ' ' }, StringSplitOptions.None);
                                     if (!parts.IsEmpty())
                                         result.Add(new RedisClusterNodeInfo(parts));
-
-                                    return result.ToArray();
                                 }
                             }
+
+                            return result.ToArray();
                         }
                     }
                 }
             }
-                    return null;
+            return null;
         }
 
         #endregion Methods

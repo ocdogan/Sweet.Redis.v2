@@ -34,7 +34,7 @@ namespace Sweet.Redis.v2
 {
     #region RedisPartitionedList
 
-    public class RedisPartitionedList<T> : IEnumerable, IEnumerable<T>
+    public class RedisPartitionedList<T> : RedisDisposable, IEnumerable, IEnumerable<T>
     {
         #region IEnumerator<T>
 
@@ -270,8 +270,6 @@ namespace Sweet.Redis.v2
 
         #region Field Members
 
-        private Guid m_Id = Guid.NewGuid();
-
         private int m_Count;
         private int m_BucketSize;
         private int m_Version;
@@ -279,7 +277,6 @@ namespace Sweet.Redis.v2
         private int m_UncompleteCount;
         private List<Bucket> m_Buckets = new List<Bucket>();
 
-        private long m_Disposed;
         private readonly object m_SyncRoot = new object();
 
         #endregion Field Members
@@ -302,18 +299,9 @@ namespace Sweet.Redis.v2
 
         #region Destructors
 
-        ~RedisPartitionedList()
+        protected override void OnDispose(bool disposing)
         {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        protected virtual void OnDispose()
-        {
+            base.OnDispose(disposing);
             lock (m_SyncRoot)
             {
                 var buckets = Interlocked.Exchange(ref m_Buckets, null);
@@ -328,18 +316,6 @@ namespace Sweet.Redis.v2
             }
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            var wasDisposed = Interlocked.Exchange(ref m_Disposed, 1) == 1;
-            if (wasDisposed)
-                return;
-
-            if (disposing)
-                GC.SuppressFinalize(this);
-
-            OnDispose();
-        }
-
         #endregion Destructors
 
         #region Properties
@@ -347,16 +323,6 @@ namespace Sweet.Redis.v2
         public int Count
         {
             get { return m_Count; }
-        }
-
-        public bool Disposed
-        {
-            get { return Interlocked.Read(ref m_Disposed) != 0; }
-        }
-
-        public Guid Id
-        {
-            get { return m_Id; }
         }
 
         public bool IsReadOnly
@@ -391,7 +357,7 @@ namespace Sweet.Redis.v2
                 if (index < 0 || index > m_Count - 1)
                     throw new ArgumentOutOfRangeException("index");
 
-                ValidateDisposed();
+                ValidateNotDisposed();
                 lock (m_SyncRoot)
                 {
                     if (m_UncompleteCount == 0)
@@ -419,7 +385,7 @@ namespace Sweet.Redis.v2
                 if (index < 0 || index > m_Count - 1)
                     throw new ArgumentOutOfRangeException("index");
 
-                ValidateDisposed();
+                ValidateNotDisposed();
                 lock (m_SyncRoot)
                 {
                     m_Version++;
@@ -454,21 +420,11 @@ namespace Sweet.Redis.v2
 
         #region Methods
 
-        #region Validation
-
-        protected void ValidateDisposed()
-        {
-            if (Disposed)
-                throw new ObjectDisposedException(m_Id.ToString("N"));
-        }
-
-        #endregion Validation
-
         #region ICollection
 
         public virtual void Put(T item)
         {
-            ValidateDisposed();
+            ValidateNotDisposed();
             lock (m_SyncRoot)
             {
                 m_Version++;
@@ -517,7 +473,7 @@ namespace Sweet.Redis.v2
 
         public virtual void Clear()
         {
-            ValidateDisposed();
+            ValidateNotDisposed();
             lock (m_SyncRoot)
             {
                 m_Version++;
@@ -536,7 +492,7 @@ namespace Sweet.Redis.v2
 
         public virtual bool Contains(T item)
         {
-            ValidateDisposed();
+            ValidateNotDisposed();
             lock (m_SyncRoot)
             {
                 foreach (var bucket in m_Buckets)
@@ -548,7 +504,7 @@ namespace Sweet.Redis.v2
 
         public virtual void CopyTo(T[] array, int arrayIndex)
         {
-            ValidateDisposed();
+            ValidateNotDisposed();
             lock (m_SyncRoot)
             {
                 foreach (var partition in m_Buckets)
@@ -561,7 +517,7 @@ namespace Sweet.Redis.v2
 
         public virtual bool Remove(T item)
         {
-            ValidateDisposed();
+            ValidateNotDisposed();
             lock (m_SyncRoot)
             {
                 m_Version++;
@@ -600,13 +556,13 @@ namespace Sweet.Redis.v2
 
         public IEnumerator<T> GetEnumerator()
         {
-            ValidateDisposed();
+            ValidateNotDisposed();
             return new PartitionedListEnumerator(this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            ValidateDisposed();
+            ValidateNotDisposed();
             return new PartitionedListEnumerator(this);
         }
 
@@ -616,7 +572,7 @@ namespace Sweet.Redis.v2
 
         public virtual int IndexOf(T item)
         {
-            ValidateDisposed();
+            ValidateNotDisposed();
             lock (m_SyncRoot)
             {
                 var start = 0;
@@ -637,7 +593,7 @@ namespace Sweet.Redis.v2
             if (index < 0 || index > m_Count - 1)
                 throw new ArgumentOutOfRangeException("index");
 
-            ValidateDisposed();
+            ValidateNotDisposed();
             lock (m_SyncRoot)
             {
                 m_Version++;
@@ -801,7 +757,7 @@ namespace Sweet.Redis.v2
 
         public void Sort(int index, int length, IComparer<T> comparer = null)
         {
-            ValidateDisposed();
+            ValidateNotDisposed();
             lock (m_SyncRoot)
             {
                 try

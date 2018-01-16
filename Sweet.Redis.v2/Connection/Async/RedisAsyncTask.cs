@@ -41,7 +41,7 @@ namespace Sweet.Redis.v2
 
         private RedisCommand m_Command;
 
-        private long m_Waiting;
+        private int m_Waiting;
         private bool m_IsAsync;
         private RedisResult m_Result;
         private Exception m_Exception;
@@ -237,7 +237,7 @@ namespace Sweet.Redis.v2
 
         public void Pulse()
         {
-            if (m_Waiting != RedisConstants.Zero)
+            if (m_Waiting != 0)
             {
                 lock (m_WaitLock)
                 {
@@ -248,7 +248,7 @@ namespace Sweet.Redis.v2
 
         public bool Wait(int millisecondsTimeout)
         {
-            if (Interlocked.CompareExchange(ref m_Waiting, RedisConstants.One, RedisConstants.Zero) == RedisConstants.Zero)
+            if (Interlocked.CompareExchange(ref m_Waiting, 1, 0) == 0)
             {
                 try
                 {
@@ -263,7 +263,7 @@ namespace Sweet.Redis.v2
                 }
                 finally
                 {
-                    Interlocked.Exchange(ref m_Waiting, RedisConstants.Zero);
+                    Interlocked.Exchange(ref m_Waiting, 0);
                 }
                 return false;
             }

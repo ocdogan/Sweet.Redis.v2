@@ -46,12 +46,12 @@ namespace Sweet.Redis.v2
         protected RedisMemDb(RedisPartitionedList<T> items)
         {
             if (items != null) items.Sort();
-            m_Items = items ?? new RedisPartitionedList<T>(10);
+            m_Items = items ?? new RedisPartitionedList<T>(8);
         }
 
         public RedisMemDb(int capacity = -1)
         {
-            m_Items = new RedisPartitionedList<T>(Math.Max(10, capacity));
+            m_Items = new RedisPartitionedList<T>(Math.Max(8, capacity));
         }
 
         #endregion .Ctors
@@ -203,9 +203,9 @@ namespace Sweet.Redis.v2
             }
         }
 
-        #region Protected ICollection<T>, IList<T>
+        #region ICollection<T>, IList<T>
 
-        protected virtual void Add(T item)
+        public virtual void Add(T item)
         {
             ValidateNotDisposed();
             lock (m_SyncRoot)
@@ -214,7 +214,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        protected virtual bool Remove(T item)
+        public virtual bool Remove(T item)
         {
             ValidateNotDisposed();
             lock (m_SyncRoot)
@@ -223,13 +223,13 @@ namespace Sweet.Redis.v2
             }
         }
 
-        protected virtual void Insert(int index, T item)
+        public virtual void Insert(int index, T item)
         {
             ValidateNotDisposed();
             throw new NotImplementedException();
         }
 
-        protected virtual void RemoveAt(int index)
+        public virtual void RemoveAt(int index)
         {
             ValidateNotDisposed();
             lock (m_SyncRoot)
@@ -238,7 +238,7 @@ namespace Sweet.Redis.v2
             }
         }
 
-        #endregion Protected ICollection<T>, IList<T>
+        #endregion ICollection<T>, IList<T>
 
         #endregion Collection Methods
 
