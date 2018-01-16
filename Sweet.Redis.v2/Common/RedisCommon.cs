@@ -545,28 +545,28 @@ namespace Sweet.Redis.v2
             return (obj != null) && !obj.Disposed;
         }
 
-        internal static byte[] Clone(this byte[] x, int offset = 0, int length = -1)
+        internal static byte[] Clone(this byte[] bytes, int offset = 0, int length = -1)
         {
-            if (x != null)
+            if (bytes != null)
             {
-                var xLength = x.Length;
-                if (offset < xLength)
+                var bytesLength = bytes.Length;
+                if (offset < bytesLength)
                 {
-                    if (xLength == 0)
+                    if (bytesLength == 0)
                         return new byte[0];
 
                     if (offset < 0) offset = 0;
 
-                    if (length < 0) length = xLength;
+                    if (length < 0) length = bytesLength;
 
-                    length = Math.Min(length, xLength - offset);
+                    length = Math.Min(length, bytesLength - offset);
                     if (length > -1)
                     {
                         var result = new byte[length];
                         if (length == 0)
                             return result;
 
-                        Array.Copy(x, offset, result, 0, length);
+                        Array.Copy(bytes, offset, result, 0, length);
                         return result;
                     }
                 }
@@ -574,192 +574,199 @@ namespace Sweet.Redis.v2
             return null;
         }
 
-        internal static string ToUTF8String(this byte[] x, int offset = 0, int length = -1)
+        internal static string ToUTF8String(this RedisBytes bytes, int offset = 0, int length = -1)
         {
-            if (x != null)
+            if (!ReferenceEquals(bytes, null))
+                return ToUTF8String(bytes.Value, offset, length);
+            return null;
+        }
+
+        internal static string ToUTF8String(this byte[] bytes, int offset = 0, int length = -1)
+        {
+            if (bytes != null)
             {
-                var xLength = x.Length;
-                if (offset < xLength)
+                var bytesLength = bytes.Length;
+                if (offset < bytesLength)
                 {
-                    if (xLength == 0)
+                    if (bytesLength == 0)
                         return String.Empty;
 
                     if (offset < 0) offset = 0;
 
-                    if (length < 0) length = xLength;
+                    if (length < 0) length = bytesLength;
 
-                    length = Math.Min(length, xLength - offset);
+                    length = Math.Min(length, bytesLength - offset);
                     if (length > -1)
                     {
                         if (length == 0)
                             return String.Empty;
-                        return UTF8.GetString(x, offset, length);
+                        return UTF8.GetString(bytes, offset, length);
                     }
                 }
             }
             return null;
         }
 
-        internal static bool EqualTo(this byte[] x, byte[] y)
+        internal static bool EqualTo(this byte[] bytesX, byte[] bytesY)
         {
-            if (ReferenceEquals(x, y))
+            if (ReferenceEquals(bytesX, bytesY))
                 return true;
 
-            if (ReferenceEquals(x, null))
-                return ReferenceEquals(y, null);
+            if (ReferenceEquals(bytesX, null))
+                return ReferenceEquals(bytesY, null);
 
-            if (ReferenceEquals(y, null))
+            if (ReferenceEquals(bytesY, null))
                 return false;
 
-            var l1 = x.Length;
-            var l2 = y.Length;
+            var l1 = bytesX.Length;
+            var l2 = bytesY.Length;
 
             if (l1 != l2)
                 return false;
 
             for (var i = 0; i < l1; i++)
-                if (x[i] != y[i])
+                if (bytesX[i] != bytesY[i])
                     return false;
 
             return true;
         }
 
-        internal static bool EqualTo(this byte[] data, object obj)
+        internal static bool EqualTo(this byte[] bytes, object obj)
         {
-            if (ReferenceEquals(data, null))
+            if (ReferenceEquals(bytes, null))
                 return ReferenceEquals(obj, null);
 
             if (ReferenceEquals(obj, null))
                 return false;
 
-            if (ReferenceEquals(data, obj))
+            if (ReferenceEquals(bytes, obj))
                 return true;
 
             if (obj is byte[])
-                return data.EqualTo((byte[])obj);
+                return bytes.EqualTo((byte[])obj);
 
             if (obj is RedisParam)
-                return data.EqualTo(((RedisParam)obj).Data);
+                return bytes.EqualTo(((RedisParam)obj).Data);
 
             if (obj is string)
-                return data.EqualTo(UTF8.GetBytes((string)obj));
+                return bytes.EqualTo(UTF8.GetBytes((string)obj));
 
             if (obj is long)
-                return data.EqualTo(BitConverter.GetBytes((long)obj));
+                return bytes.EqualTo(BitConverter.GetBytes((long)obj));
 
             if (obj is int)
-                return data.EqualTo(BitConverter.GetBytes((int)obj));
+                return bytes.EqualTo(BitConverter.GetBytes((int)obj));
 
             if (obj is short)
-                return data.EqualTo(BitConverter.GetBytes((short)obj));
+                return bytes.EqualTo(BitConverter.GetBytes((short)obj));
 
             if (obj is double)
-                return data.EqualTo(BitConverter.GetBytes((double)obj));
+                return bytes.EqualTo(BitConverter.GetBytes((double)obj));
 
             if (obj is byte)
-                return data.EqualTo(new byte[] { (byte)obj });
+                return bytes.EqualTo(new byte[] { (byte)obj });
 
             if (obj is ulong)
-                return data.EqualTo(BitConverter.GetBytes((ulong)obj));
+                return bytes.EqualTo(BitConverter.GetBytes((ulong)obj));
 
             if (obj is uint)
-                return data.EqualTo(BitConverter.GetBytes((uint)obj));
+                return bytes.EqualTo(BitConverter.GetBytes((uint)obj));
 
             if (obj is ushort)
-                return data.EqualTo(BitConverter.GetBytes((ushort)obj));
+                return bytes.EqualTo(BitConverter.GetBytes((ushort)obj));
 
             if (obj is DateTime)
-                return data.EqualTo(BitConverter.GetBytes(((DateTime)obj).Ticks));
+                return bytes.EqualTo(BitConverter.GetBytes(((DateTime)obj).Ticks));
 
             if (obj is TimeSpan)
-                return data.EqualTo(BitConverter.GetBytes(((TimeSpan)obj).Ticks));
+                return bytes.EqualTo(BitConverter.GetBytes(((TimeSpan)obj).Ticks));
 
             if (obj is char)
-                return data.EqualTo(BitConverter.GetBytes((char)obj));
+                return bytes.EqualTo(BitConverter.GetBytes((char)obj));
 
             if (obj is bool)
-                return data.EqualTo(BitConverter.GetBytes((bool)obj));
+                return bytes.EqualTo(BitConverter.GetBytes((bool)obj));
 
             if (obj is long?)
             {
                 var nullable = (long?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value));
             }
 
             if (obj is int?)
             {
                 var nullable = (int?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value));
             }
 
             if (obj is short?)
             {
                 var nullable = (short?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value));
             }
 
             if (obj is double?)
             {
                 var nullable = (long?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value));
             }
 
             if (obj is byte?)
             {
                 var nullable = (byte?)obj;
-                return nullable.HasValue && data.EqualTo(new byte[] { nullable.Value });
+                return nullable.HasValue && bytes.EqualTo(new byte[] { nullable.Value });
             }
 
             if (obj is ulong?)
             {
                 var nullable = (ulong?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value));
             }
 
             if (obj is uint?)
             {
                 var nullable = (uint?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value));
             }
 
             if (obj is ushort?)
             {
                 var nullable = (ushort?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value));
             }
 
             if (obj is DateTime?)
             {
                 var nullable = (DateTime?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value.Ticks));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value.Ticks));
             }
 
             if (obj is TimeSpan?)
             {
                 var nullable = (TimeSpan?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value.Ticks));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value.Ticks));
             }
 
             if (obj is char?)
             {
                 var nullable = (char?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value));
             }
 
             if (obj is bool?)
             {
                 var nullable = (bool?)obj;
-                return nullable.HasValue && data.EqualTo(BitConverter.GetBytes(nullable.Value));
+                return nullable.HasValue && bytes.EqualTo(BitConverter.GetBytes(nullable.Value));
             }
 
             return false;
         }
 
-        internal static int IndexOf(this byte[] data, byte b, int startPos = 0, int length = -1)
+        internal static int IndexOf(this byte[] bytes, byte b, int startPos = 0, int length = -1)
         {
-            if (data != null && length != 0)
+            if (bytes != null && length != 0)
             {
-                var dataLength = data.Length;
+                var dataLength = bytes.Length;
 
                 startPos = Math.Max(0, startPos);
                 if (dataLength > 0 && startPos < dataLength)
@@ -769,18 +776,18 @@ namespace Sweet.Redis.v2
                         endPos = Math.Min(dataLength, startPos + length);
 
                     for (var i = startPos; i < endPos; i++)
-                        if (data[i] == b)
+                        if (bytes[i] == b)
                             return i;
                 }
             }
             return -1;
         }
 
-        internal static int ScanCRLF(this byte[] data, int index = 0, int length = -1)
+        internal static int ScanCRLF(this byte[] bytes, int index = 0, int length = -1)
         {
-            if (data != null)
+            if (bytes != null)
             {
-                var dataLen = data.Length;
+                var dataLen = bytes.Length;
                 if (dataLen > 0)
                 {
                     length = Math.Max(0, Math.Min(dataLen - index, length));
@@ -788,7 +795,7 @@ namespace Sweet.Redis.v2
                     {
                         var end = Math.Min(dataLen, index + length);
                         for (var i = index; i < end; i++)
-                            if (data[i] == '\n' && i >= index && data[i - 1] == '\r')
+                            if (bytes[i] == '\n' && i >= index && bytes[i - 1] == '\r')
                                 return i;
                     }
                 }
