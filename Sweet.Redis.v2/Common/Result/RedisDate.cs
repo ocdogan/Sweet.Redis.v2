@@ -120,7 +120,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(a, null))
                 return false;
-            return (b.m_Status == (long)RedisResultStatus.Completed) && ((DateTime)b.m_RawData == a);
+            return (b.m_Status == (int)RedisResultStatus.Completed) && ((DateTime)b.m_RawData == a);
         }
 
         public static bool operator !=(DateTime a, RedisDate b)
@@ -132,7 +132,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(a, null))
                 return false;
-            return (a.m_Status == (long)RedisResultStatus.Completed) && ((DateTime)a.m_RawData == b);
+            return (a.m_Status == (int)RedisResultStatus.Completed) && ((DateTime)a.m_RawData == b);
         }
 
         public static bool operator !=(RedisDate a, DateTime b)

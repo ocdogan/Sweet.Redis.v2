@@ -409,7 +409,7 @@ namespace Sweet.Redis.v2
             if (ReferenceEquals(a, b))
                 return true;
 
-            return (b.m_Status == (long)RedisResultStatus.Completed) && (((byte[])b.m_RawData == a) ||
+            return (b.m_Status == (int)RedisResultStatus.Completed) && (((byte[])b.m_RawData == a) ||
                 ((RedisByteArray)b.m_RawData == (RedisByteArray)a));
         }
 
@@ -429,7 +429,7 @@ namespace Sweet.Redis.v2
             if (ReferenceEquals(a, b))
                 return true;
 
-            return (a.m_Status == (long)RedisResultStatus.Completed) && (((byte[])a.m_RawData == b) ||
+            return (a.m_Status == (int)RedisResultStatus.Completed) && (((byte[])a.m_RawData == b) ||
                 ((RedisByteArray)a.m_RawData == (RedisByteArray)b));
         }
 

@@ -173,7 +173,7 @@ namespace Sweet.Redis.v2
             ValidateNotDisposed();
 
             if (Interlocked.CompareExchange(ref m_State, (int)RedisBatchState.Executing, (int)RedisBatchState.WaitingCommit) == 
-                (long)RedisBatchState.WaitingCommit)
+                (int)RedisBatchState.WaitingCommit)
             {
                 var requests = Interlocked.Exchange(ref m_Requests, new List<RedisBatchRequest>(DefaultCapacity));
                 try

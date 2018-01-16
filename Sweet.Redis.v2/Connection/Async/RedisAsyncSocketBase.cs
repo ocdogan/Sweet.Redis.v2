@@ -787,7 +787,7 @@ namespace Sweet.Redis.v2
             if (!Disposed)
             {
                 var readCount = Interlocked.Add(ref m_ReadCount, 1);
-                if (readCount > RedisConstants.One)
+                if (readCount > 1)
                 {
                     Interlocked.Add(ref m_ReadCount, -1);
                     return;

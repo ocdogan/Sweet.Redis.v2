@@ -72,8 +72,6 @@ namespace Sweet.Redis.v2
 
         #region Readonly
 
-        private long m_ReceiveState;
-
         private DateTime m_LastMessageSeenTime;
 
         private readonly object m_SubscriptionLock = new object();
@@ -86,7 +84,7 @@ namespace Sweet.Redis.v2
 
         #endregion Readonly
 
-        private long m_PubSubState;
+        private int m_PubSubState;
 
         #endregion Field Members
 
@@ -102,8 +100,6 @@ namespace Sweet.Redis.v2
 
         protected override void OnDispose(bool disposing)
         {
-            Interlocked.Exchange(ref m_ReceiveState, RedisConstants.Zero);
-
             lock (m_SubscriptionLock)
             {
                 m_Subscriptions.Dispose();
@@ -129,11 +125,11 @@ namespace Sweet.Redis.v2
         {
             get
             {
-                return m_PubSubState != RedisConstants.Zero;
+                return m_PubSubState != 0;
             }
             private set
             {
-                Interlocked.Exchange(ref m_PubSubState, value ? RedisConstants.One : RedisConstants.Zero);
+                Interlocked.Exchange(ref m_PubSubState, value ? 1 : 0);
             }
         }
 
@@ -350,7 +346,7 @@ namespace Sweet.Redis.v2
         protected override void OnQuit()
         {
             if (!Disposed)
-                Interlocked.Exchange(ref m_PubSubState, RedisConstants.Zero);
+                Interlocked.Exchange(ref m_PubSubState, 0);
         }
 
         public void ResubscribeAll()
@@ -361,7 +357,7 @@ namespace Sweet.Redis.v2
             if (receive)
             {
                 Receive();
-                Interlocked.Exchange(ref m_PubSubState, RedisConstants.One);
+                Interlocked.Exchange(ref m_PubSubState, 1);
             }
         }
 

@@ -27,7 +27,7 @@ using System;
 namespace Sweet.Redis.v2
 {
     [Flags]
-    public enum RedisManagedNodeStatus : long
+    public enum RedisManagedNodeStatus
     {
         Empty = 0,
         Open = 0,

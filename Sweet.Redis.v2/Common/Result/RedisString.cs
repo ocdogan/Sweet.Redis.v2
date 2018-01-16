@@ -149,7 +149,7 @@ namespace Sweet.Redis.v2
             if (ReferenceEquals(b, null))
                 return false;
 
-            return (a.m_Status == (long)RedisResultStatus.Completed) && ((string)a.m_RawData == b);
+            return (a.m_Status == (int)RedisResultStatus.Completed) && ((string)a.m_RawData == b);
         }
 
         public static bool operator !=(RedisString a, string b)

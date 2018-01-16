@@ -220,7 +220,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(b, null) || ReferenceEquals(b.m_RawData, null))
                 return false;
-            return (b.m_Status == (long)RedisResultStatus.Completed) && a.Equals((double)(long)b.m_RawData);
+            return (b.m_Status == (int)RedisResultStatus.Completed) && a.Equals((double)(long)b.m_RawData);
         }
 
         public static bool operator !=(double a, RedisInteger b)
@@ -232,7 +232,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(a, null) || ReferenceEquals(a.m_RawData, null))
                 return false;
-            return (a.m_Status == (long)RedisResultStatus.Completed) && b.Equals((double)(long)a.m_RawData);
+            return (a.m_Status == (int)RedisResultStatus.Completed) && b.Equals((double)(long)a.m_RawData);
         }
 
         public static bool operator !=(RedisInteger a, double b)
@@ -244,7 +244,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(b, null) || ReferenceEquals(b.m_RawData, null))
                 return false;
-            return (b.m_Status == (long)RedisResultStatus.Completed) && ((long)b.m_RawData == a);
+            return (b.m_Status == (int)RedisResultStatus.Completed) && ((long)b.m_RawData == a);
         }
 
         public static bool operator !=(short a, RedisInteger b)
@@ -256,7 +256,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(a, null) || ReferenceEquals(a.m_RawData, null))
                 return false;
-            return (a.m_Status == (long)RedisResultStatus.Completed) && ((long)a.m_RawData == b);
+            return (a.m_Status == (int)RedisResultStatus.Completed) && ((long)a.m_RawData == b);
         }
 
         public static bool operator !=(RedisInteger a, short b)
@@ -268,7 +268,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(b, null) || ReferenceEquals(b.m_RawData, null))
                 return false;
-            return (b.m_Status == (long)RedisResultStatus.Completed) && ((long)b.m_RawData == a);
+            return (b.m_Status == (int)RedisResultStatus.Completed) && ((long)b.m_RawData == a);
         }
 
         public static bool operator !=(int a, RedisInteger b)
@@ -280,7 +280,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(a, null) || ReferenceEquals(a.m_RawData, null))
                 return false;
-            return (a.m_Status == (long)RedisResultStatus.Completed) && ((long)a.m_RawData == b);
+            return (a.m_Status == (int)RedisResultStatus.Completed) && ((long)a.m_RawData == b);
         }
 
         public static bool operator !=(RedisInteger a, int b)
@@ -292,7 +292,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(b, null) || ReferenceEquals(b.m_RawData, null))
                 return false;
-            return (b.m_Status == (long)RedisResultStatus.Completed) && ((long)b.m_RawData == a);
+            return (b.m_Status == (int)RedisResultStatus.Completed) && ((long)b.m_RawData == a);
         }
 
         public static bool operator !=(long a, RedisInteger b)
@@ -304,7 +304,7 @@ namespace Sweet.Redis.v2
         {
             if (ReferenceEquals(a, null) || ReferenceEquals(a.m_RawData, null))
                 return false;
-            return (a.m_Status == (long)RedisResultStatus.Completed) && ((long)a.m_RawData == b);
+            return (a.m_Status == (int)RedisResultStatus.Completed) && ((long)a.m_RawData == b);
         }
 
         public static bool operator !=(RedisInteger a, long b)

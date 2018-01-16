@@ -59,13 +59,13 @@ namespace Sweet.Redis.v2
                 var sEndPoint = sentinel.EndPoint;
                 if (sEndPoint != null)
                 {
-                    result = sEndPoint as RedisEndPoint;
-                    if (ReferenceEquals(result, null))
+                    var ipEP = sEndPoint as IPEndPoint;
+                    if (ipEP != null)
+                        result = new RedisEndPoint(ipEP.Address.ToString(), ipEP.Port);
+                    else
                     {
-                        var ipEP = sEndPoint as IPEndPoint;
-                        if (ipEP != null)
-                            result = new RedisEndPoint(ipEP.Address.ToString(), ipEP.Port);
-                        else
+                        result = sEndPoint as RedisEndPoint;
+                        if (ReferenceEquals(result, null))
                         {
                             var dnsEP = sEndPoint as DnsEndPoint;
                             if (dnsEP != null)

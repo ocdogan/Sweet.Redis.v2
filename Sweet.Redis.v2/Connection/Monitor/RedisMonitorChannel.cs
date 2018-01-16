@@ -47,7 +47,7 @@ namespace Sweet.Redis.v2
 
         #endregion Readonly
 
-        private long m_MonitoringState;
+        private int m_MonitoringState;
 
         #endregion Field Members
 
@@ -78,11 +78,11 @@ namespace Sweet.Redis.v2
         {
             get
             {
-                return m_MonitoringState != RedisConstants.Zero;
+                return m_MonitoringState != 0;
             }
             private set
             {
-                Interlocked.Exchange(ref m_MonitoringState, value ? RedisConstants.One : RedisConstants.Zero);
+                Interlocked.Exchange(ref m_MonitoringState, value ? 1 : 0);
             }
         }
 
@@ -130,7 +130,7 @@ namespace Sweet.Redis.v2
                 { Priority = RedisCommandPriority.High });
 
                 Receive();
-                Interlocked.Exchange(ref m_MonitoringState, RedisConstants.One);
+                Interlocked.Exchange(ref m_MonitoringState, 1);
             }
         }
 
@@ -152,7 +152,7 @@ namespace Sweet.Redis.v2
         protected override void OnQuit()
         {
             if (!Disposed)
-                Interlocked.Exchange(ref m_MonitoringState, RedisConstants.Zero);
+                Interlocked.Exchange(ref m_MonitoringState, 0);
         }
 
         #endregion IRedisMonitorChannel

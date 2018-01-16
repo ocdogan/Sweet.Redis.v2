@@ -138,7 +138,7 @@ namespace Sweet.Redis.v2
 
         public static bool Processing
         {
-            get { return s_ProcessState != (long)RedisProcessState.Idle; }
+            get { return s_ProcessState != (int)RedisProcessState.Idle; }
         }
 
         #endregion Properties
